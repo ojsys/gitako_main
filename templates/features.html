@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% block title %}Features - Gitako Farm Management{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8 text-center">
+                <h1 class="display-4 fw-bold mb-4">{{ feature_page.hero_title }}</h1>
+                <p class="lead mb-4">{{ feature_page.hero_subtitle }}</p>
+            </div>
+        </div>
+        {% if feature_page.hero_image %}
+        <div class="row justify-content-center mt-4">
+            <div class="col-md-10">
+                <img src="{{ feature_page.hero_image.url }}" alt="Features" class="img-fluid rounded shadow">
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="py-5">
+    <div class="container">
+        {% for feature in feature_details %}
+        <div class="row align-items-center {% if forloop.counter|divisibleby:2 %}flex-row-reverse{% endif %} mb-5">
+            <div class="col-md-6 mb-4 mb-md-0">
+                <img src="{{ feature.image.url }}" alt="{{ feature.title }}" class="img-fluid rounded shadow">
+            </div>
+            <div class="col-md-6">
+                <h2 class="mb-4">{{ feature.title }}</h2>
+                <p class="lead mb-4">{{ feature.description }}</p>
+                <ul class="list-unstyled">
+                    {% for point in feature.bullet_points.splitlines %}
+                    <li class="mb-2">
+                        <i class="material-icons text-success align-middle me-2">check_circle</i>
+                        {{ point }}
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        {% if not forloop.last %}
+        <hr class="my-5">
+        {% endif %}
+        {% empty %}
+        <div class="text-center py-5">
+            <p class="lead">No feature details available at the moment.</p>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="py-5 bg-success text-white">
+    <div class="container text-center">
+        <h2 class="mb-4">{{ feature_page.cta_text }}</h2>
+        <p class="lead mb-4">{{ feature_page.cta_subtitle }}</p>
+        <a href="{% url 'site_config:pricing' %}" class="btn btn-light btn-lg me-2">View Pricing</a>
+        <a href="{% url 'accounts:register' %}" class="btn btn-outline-light btn-lg">Sign Up Now</a>
+    </div>
+</section>
+{% endblock %}

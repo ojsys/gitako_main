@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Gitako Farm Management{% endblock %}</title>
+    <!-- Material Design Web Components -->
+    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Material+Icons&display=block" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.20.0/css/mdb.min.css" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-color: #2e7d32;
+            --primary-light: #60ad5e;
+            --primary-dark: #005005;
+            --secondary-color: #fdd835;
+            --secondary-light: #ffff6b;
+            --secondary-dark: #c6a700;
+            --text-on-primary: #ffffff;
+            --text-on-secondary: #000000;
+        }
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        .navbar {
+            background-color: var(--primary-color);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.16), 0 2px 10px rgba(0,0,0,0.12);
+        }
+        .navbar-brand {
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
+        .nav-link {
+            font-weight: 400;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+        }
+        .card {
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            border: none;
+            transition: all 0.3s ease;
+        }
+        .card:hover {
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+            border-color: var(--primary-dark);
+        }
+        .btn-outline-primary {
+            color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        .btn-outline-primary:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        .footer {
+            background-color: #f8f9fa;
+            padding: 2rem 0;
+            margin-top: 3rem;
+        }
+        .page-content {
+            min-height: calc(100vh - 300px);
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="material-icons align-middle" style="vertical-align: -0.25em;">eco</i> Gitako
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <!-- Update the navbar links -->
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'site_config:home' %}">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'site_config:features' %}">Features</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'site_config:pricing' %}">Pricing</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'site_config:about' %}">About</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'site_config:contact' %}">Contact</a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav">
+                    {% if user.is_authenticated %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="material-icons me-1" style="font-size: 1.2rem;">account_circle</i> 
+                            <span>{{ user.username }}</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item d-flex align-items-center" href="{% url 'accounts:profile' %}">
+                                <i class="material-icons me-2" style="font-size: 1.1rem;">person</i> 
+                                <span>Profile</span>
+                            </a></li>
+                            <li><a class="dropdown-item d-flex align-items-center" href="/dashboard">
+                                <i class="material-icons me-2" style="font-size: 1.1rem;">dashboard</i> 
+                                <span>Dashboard</span>
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item d-flex align-items-center" href="{% url 'accounts:logout' %}">
+                                <i class="material-icons me-2" style="font-size: 1.1rem;">exit_to_app</i> 
+                                <span>Logout</span>
+                            </a></li>
+                        </ul>
+                    </li>
+                    {% else %}
+                    <li class="nav-item d-flex align-items-center">
+                        <a class="nav-link" href="{% url 'accounts:login' %}">LOGIN</a>
+                    </li>
+                    <li class="nav-item d-flex align-items-center">
+                        <a class="btn btn-outline-light ms-2" href="{% url 'accounts:register' %}">SIGN UP</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="mt-4 page-content">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        {% block content %}{% endblock %}
+    </div>
+
+    <footer class="footer mt-auto py-3 bg-dark text-white">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4 mb-4">
+                    <h5 class="text-uppercase mb-4"><i class="material-icons align-middle">eco</i> Gitako</h5>
+                    <p>
+                        Empowering farmers with technology for sustainable agriculture and improved productivity.
+                    </p>
+                    <div class="mt-4">
+                        <a href="#" class="btn btn-floating btn-success me-2"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="btn btn-floating btn-success me-2"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="btn btn-floating btn-success me-2"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="btn btn-floating btn-success me-2"><i class="fab fa-linkedin-in"></i></a>
+                    </div>
+                </div>
+                <!-- Update the footer links -->
+                <div class="col-md-2 mb-4">
+                    <h5 class="text-uppercase mb-4">Links</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><a href="{% url 'site_config:home' %}" class="text-decoration-none text-light">Home</a></li>
+                        <li class="mb-2"><a href="{% url 'site_config:features' %}" class="text-decoration-none text-light">Features</a></li>
+                        <li class="mb-2"><a href="{% url 'site_config:pricing' %}" class="text-decoration-none text-light">Pricing</a></li>
+                        <li class="mb-2"><a href="{% url 'site_config:about' %}" class="text-decoration-none text-light">About</a></li>
+                        <li class="mb-2"><a href="{% url 'site_config:contact' %}" class="text-decoration-none text-light">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3 mb-4">
+                    <h5 class="text-uppercase mb-4">Resources</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><a href="/blog" class="text-decoration-none text-light">Blog</a></li>
+                        <li class="mb-2"><a href="/help" class="text-decoration-none text-light">Help Center</a></li>
+                        <li class="mb-2"><a href="/faq" class="text-decoration-none text-light">FAQ</a></li>
+                        <li class="mb-2"><a href="/api" class="text-decoration-none text-light">API Documentation</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3 mb-4">
+                    <h5 class="text-uppercase mb-4">Contact</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><i class="material-icons align-middle me-2">location_on</i> 123 Farm Street, Nairobi, Kenya</li>
+                        <li class="mb-2"><i class="material-icons align-middle me-2">phone</i> +254 700 123 456</li>
+                        <li class="mb-2"><i class="material-icons align-middle me-2">email</i> info@gitako.com</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="text-center p-3" style="background-color: rgba(0, 0, 0, 0.2);">
+            © 2023 Gitako Farm Management. All rights reserved.
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.20.0/js/mdb.min.js"></script>
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

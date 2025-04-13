@@ -1,0 +1,148 @@
+{% extends 'base.html' %}
+
+{% block title %}Pricing - Gitako Farm Management{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8 text-center">
+                <h1 class="display-4 fw-bold mb-4">{{ pricing_page.hero_title }}</h1>
+                <p class="lead mb-4">{{ pricing_page.hero_subtitle }}</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Pricing Toggle Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="row justify-content-center mb-5">
+            <div class="col-md-6 text-center">
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-outline-success active" id="monthlyBtn">Monthly</button>
+                    <button type="button" class="btn btn-outline-success" id="annualBtn">Annual (Save 20%)</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            {% for plan in pricing_plans %}
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 border-0 shadow {% if plan.is_popular %}border-success border-2{% endif %}">
+                    {% if plan.is_popular %}
+                    <div class="card-header bg-success text-white text-center py-3">
+                        <span class="badge bg-white text-success">Most Popular</span>
+                    </div>
+                    {% endif %}
+                    <div class="card-body p-5">
+                        <h3 class="card-title text-center mb-4">{{ plan.name }}</h3>
+                        <p class="text-center text-muted mb-4">{{ plan.subtitle }}</p>
+                        <div class="text-center mb-4">
+                            <h2 class="display-4 fw-bold mb-0 monthly-price">
+                                ${{ plan.monthly_price }}
+                            </h2>
+                            <h2 class="display-4 fw-bold mb-0 annual-price" style="display: none;">
+                                ${{ plan.annual_price }}
+                            </h2>
+                            <p class="text-muted">per month</p>
+                        </div>
+                        <ul class="list-unstyled mb-5">
+                            {% for feature in plan.features.splitlines %}
+                                {% if feature|slice:":1" == "-" %}
+                                <li class="mb-2 text-muted">
+                                    <i class="material-icons text-muted align-middle me-2">remove_circle_outline</i>
+                                    {{ feature|slice:"1:" }}
+                                </li>
+                                {% else %}
+                                <li class="mb-2">
+                                    <i class="material-icons text-success align-middle me-2">check_circle</i>
+                                    {{ feature }}
+                                </li>
+                                {% endif %}
+                            {% endfor %}
+                        </ul>
+                        <div class="text-center">
+                            <a href="{% url 'accounts:register' %}" class="btn {% if plan.is_popular %}btn-success{% else %}btn-outline-success{% endif %} btn-lg w-100">
+                                {{ plan.button_text }}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12 text-center py-5">
+                <p class="lead">No pricing plans available at the moment.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- FAQ Section -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <h2 class="text-center mb-5">{{ pricing_page.faq_title }}</h2>
+        
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="accordion" id="pricingFAQ">
+                    {% for faq in pricing_faqs %}
+                    <div class="accordion-item border-0 mb-3 shadow-sm">
+                        <h2 class="accordion-header" id="heading{{ forloop.counter }}">
+                            <button class="accordion-button {% if not forloop.first %}collapsed{% endif %}" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ forloop.counter }}" aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}" aria-controls="collapse{{ forloop.counter }}">
+                                {{ faq.question }}
+                            </button>
+                        </h2>
+                        <div id="collapse{{ forloop.counter }}" class="accordion-collapse collapse {% if forloop.first %}show{% endif %}" aria-labelledby="heading{{ forloop.counter }}" data-bs-parent="#pricingFAQ">
+                            <div class="accordion-body">
+                                {{ faq.answer }}
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center py-3">
+                        <p>No FAQs available at the moment.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="py-5">
+    <div class="container text-center">
+        <h2 class="mb-4">{{ pricing_page.cta_text }}</h2>
+        <p class="lead mb-4">{{ pricing_page.cta_subtitle }}</p>
+        <a href="{% url 'site_config:contact' %}" class="btn btn-success btn-lg">Contact Us</a>
+    </div>
+</section>
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const monthlyBtn = document.getElementById('monthlyBtn');
+        const annualBtn = document.getElementById('annualBtn');
+        const monthlyPrices = document.querySelectorAll('.monthly-price');
+        const annualPrices = document.querySelectorAll('.annual-price');
+        
+        monthlyBtn.addEventListener('click', function() {
+            monthlyBtn.classList.add('active');
+            annualBtn.classList.remove('active');
+            monthlyPrices.forEach(price => price.style.display = 'block');
+            annualPrices.forEach(price => price.style.display = 'none');
+        });
+        
+        annualBtn.addEventListener('click', function() {
+            annualBtn.classList.add('active');
+            monthlyBtn.classList.remove('active');
+            annualPrices.forEach(price => price.style.display = 'block');
+            monthlyPrices.forEach(price => price.style.display = 'none');
+        });
+    });
+</script>
+{% endblock %}
+{% endblock %}

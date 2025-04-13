@@ -1,0 +1,113 @@
+gitako_main/
+├── manage.py
+├── requirements.txt
+├── .env
+├── .gitignore
+├── docker-compose.yml
+├── Dockerfile
+├── gitako/
+│   ├── __init__.py
+│   ├── settings/
+│   │   ├── __init__.py
+│   │   ├── base.py
+│   │   ├── development.py
+│   │   └── production.py
+│   ├── urls.py
+│   ├── asgi.py
+│   └── wsgi.py
+├── apps/
+│   ├── accounts/
+│   │   ├── __init__.py
+│   │   ├── admin.py
+│   │   ├── apps.py
+│   │   ├── models.py
+│   │   ├── serializers.py
+│   │   ├── urls.py
+│   │   ├── views.py
+│   │   └── tests/
+│   ├── farms/
+│   │   ├── __init__.py
+│   │   ├── admin.py
+│   │   ├── apps.py
+│   │   ├── models.py
+│   │   ├── serializers.py
+│   │   ├── urls.py
+│   │   ├── views.py
+│   │   └── tests/
+│   ├── activities/
+│   │   ├── __init__.py
+│   │   ├── admin.py
+│   │   ├── apps.py
+│   │   ├── models.py
+│   │   ├── serializers.py
+│   │   ├── urls.py
+│   │   ├── views.py
+│   │   └── tests/
+│   ├── recommendations/
+│   │   ├── __init__.py
+│   │   ├── admin.py
+│   │   ├── apps.py
+│   │   ├── models.py
+│   │   ├── serializers.py
+│   │   ├── urls.py
+│   │   ├── views.py
+│   │   └── tests/
+│   ├── marketplace/
+│   │   ├── __init__.py
+│   │   ├── admin.py
+│   │   ├── apps.py
+│   │   ├── models.py
+│   │   ├── serializers.py
+│   │   ├── urls.py
+│   │   ├── views.py
+│   │   └── tests/
+│   ├── inventory/
+│   │   ├── __init__.py
+│   │   ├── admin.py
+│   │   ├── apps.py
+│   │   ├── models.py
+│   │   ├── serializers.py
+│   │   ├── urls.py
+│   │   ├── views.py
+│   │   └── tests/
+│   └── financials/
+│       ├── __init__.py
+│       ├── admin.py
+│       ├── apps.py
+│       ├── models.py
+│       ├── serializers.py
+│       ├── urls.py
+│       ├── views.py
+│       └── tests/
+├── core/
+│   ├── __init__.py
+│   ├── authentication.py
+│   ├── permissions.py
+│   ├── pagination.py
+│   └── utils.py
+├── api/
+│   ├── __init__.py
+│   ├── v1/
+│   │   ├── __init__.py
+│   │   └── urls.py
+│   └── middleware.py
+├── services/
+│   ├── __init__.py
+│   ├── weather/
+│   │   ├── __init__.py
+│   │   └── client.py
+│   ├── maps/
+│   │   ├── __init__.py
+│   │   └── client.py
+│   └── payments/
+│       ├── __init__.py
+│       └── client.py
+├── tasks/
+│   ├── __init__.py
+│   ├── celery.py
+│   ├── notifications.py
+│   └── scheduled_tasks.py
+├── templates/
+│   └── admin/
+└── static/
+    └── admin/

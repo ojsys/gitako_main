@@ -1,0 +1,156 @@
+{% extends 'base.html' %}
+
+{% block title %}Home - Gitako Farm Management{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section py-5 bg-light">
+    <div class="container">
+        <div id="heroCarousel" class="carousel slide" data-bs-ride="carousel">
+            <div class="carousel-indicators">
+                {% for slider in hero_sliders %}
+                <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="{{ forloop.counter0 }}" {% if forloop.first %}class="active"{% endif %} aria-current="true" aria-label="Slide {{ forloop.counter }}"></button>
+                {% endfor %}
+            </div>
+            <div class="carousel-inner rounded shadow">
+                {% for slider in hero_sliders %}
+                <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                    <img src="{{ slider.image.url }}" class="d-block w-100" alt="{{ slider.title }}">
+                    <div class="carousel-caption d-none d-md-block">
+                        <h2>{{ slider.title }}</h2>
+                        {% if slider.subtitle %}<p>{{ slider.subtitle }}</p>{% endif %}
+                        {% if slider.button_text and slider.button_url %}
+                        <a href="{{ slider.button_url }}" class="btn btn-success btn-lg">{{ slider.button_text }}</a>
+                        {% endif %}
+                    </div>
+                </div>
+                {% empty %}
+                <div class="carousel-item active">
+                    <div class="bg-success text-white p-5 text-center" style="height: 400px;">
+                        <div class="d-flex flex-column justify-content-center h-100">
+                            <h1 class="display-4 fw-bold">{{ site_settings.hero_title }}</h1>
+                            <p class="lead">{{ site_settings.hero_subtitle }}</p>
+                            <div class="mt-4">
+                                <a href="{% url 'accounts:register' %}" class="btn btn-light btn-lg me-2">Get Started</a>
+                                <a href="{% url 'site_config:features' %}" class="btn btn-outline-light btn-lg">Learn More</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% if hero_sliders.count > 1 %}
+            <button class="carousel-control-prev" type="button" data-bs-target="#heroCarousel" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Previous</span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#heroCarousel" data-bs-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Next</span>
+            </button>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="row justify-content-center mb-5">
+            <div class="col-md-8 text-center">
+                <h2 class="mb-4">Key Features</h2>
+                <p class="lead">Gitako provides powerful tools to help you manage your farm efficiently.</p>
+            </div>
+        </div>
+        
+        <div class="row">
+            {% for feature in features %}
+            <div class="col-md-4 mb-4">
+                <div class="card border-0 shadow h-100">
+                    <div class="card-body p-4 text-center">
+                        <i class="material-icons text-success mb-3" style="font-size: 3rem;">{{ feature.icon }}</i>
+                        <h3 class="card-title mb-3">{{ feature.title }}</h3>
+                        <p class="card-text">{{ feature.description }}</p>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12 text-center py-3">
+                <p>No features available at the moment.</p>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div class="text-center mt-4">
+            <a href="{% url 'site_config:features' %}" class="btn btn-success btn-lg">Explore All Features</a>
+        </div>
+    </div>
+</section>
+
+<!-- Statistics Section -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row justify-content-center">
+            {% for stat in statistics %}
+            <div class="col-md-3 mb-4 text-center">
+                <div class="card border-0 shadow h-100">
+                    <div class="card-body p-4">
+                        <h2 class="display-4 fw-bold text-success mb-3">{{ stat.value }}</h2>
+                        <p class="text-muted mb-0">{{ stat.label }}</p>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12 text-center py-3">
+                <p>No statistics available at the moment.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- Testimonials Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="row justify-content-center mb-5">
+            <div class="col-md-8 text-center">
+                <h2 class="mb-4">What Our Customers Say</h2>
+                <p class="lead">Hear from farmers who have transformed their operations with Gitako.</p>
+            </div>
+        </div>
+        
+        <div class="row">
+            {% for testimonial in testimonials %}
+            <div class="col-md-4 mb-4">
+                <div class="card border-0 shadow h-100">
+                    <div class="card-body p-4">
+                        <div class="d-flex mb-4">
+                            <img src="{{ testimonial.image.url }}" alt="{{ testimonial.name }}" class="rounded-circle me-3" width="60" height="60">
+                            <div>
+                                <h5 class="mb-1">{{ testimonial.name }}</h5>
+                                <p class="text-muted mb-0">{{ testimonial.position }}</p>
+                            </div>
+                        </div>
+                        <p class="mb-0">{{ testimonial.content }}</p>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12 text-center py-3">
+                <p>No testimonials available at the moment.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="py-5 bg-success text-white">
+    <div class="container text-center">
+        <h2 class="mb-4">Ready to Transform Your Farm?</h2>
+        <p class="lead mb-4">Join thousands of farmers who are already using Gitako to improve their productivity and profitability.</p>
+        <a href="{% url 'accounts:register' %}" class="btn btn-light btn-lg me-2">Get Started</a>
+        <a href="{% url 'site_config:contact' %}" class="btn btn-outline-light btn-lg">Contact Us</a>
+    </div>
+</section>
+{% endblock %}

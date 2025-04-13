@@ -1,0 +1,167 @@
+{% extends 'base.html' %}
+
+{% block title %}Contact Us - Gitako Farm Management{% endblock %}
+
+{% block content %}
+<!-- Contact Hero Section -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8 text-center">
+                <h1 class="display-4 fw-bold mb-4">{{ contact_page.hero_title }}</h1>
+                <p class="lead mb-4">{{ contact_page.hero_subtitle }}</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Contact Information Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-4 mb-4">
+                <div class="card border-0 shadow h-100">
+                    <div class="card-body text-center p-4">
+                        <i class="material-icons text-success mb-3" style="font-size: 3rem;">location_on</i>
+                        <h4 class="card-title">Visit Us</h4>
+                        <p class="card-text">{{ contact_page.office_address|linebreaks }}</p>
+                        <a href="https://maps.google.com" target="_blank" class="btn btn-outline-success mt-3">Get Directions</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4 mb-4">
+                <div class="card border-0 shadow h-100">
+                    <div class="card-body text-center p-4">
+                        <i class="material-icons text-success mb-3" style="font-size: 3rem;">phone</i>
+                        <h4 class="card-title">Call Us</h4>
+                        <p class="card-text">{{ contact_page.phone_number }}<br>{{ contact_page.office_hours|linebreaks }}</p>
+                        <a href="tel:{{ contact_page.phone_number|cut:' ' }}" class="btn btn-outline-success mt-3">Call Now</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4 mb-4">
+                <div class="card border-0 shadow h-100">
+                    <div class="card-body text-center p-4">
+                        <i class="material-icons text-success mb-3" style="font-size: 3rem;">email</i>
+                        <h4 class="card-title">Email Us</h4>
+                        <p class="card-text">General Inquiries:<br>{{ contact_page.email_general }}<br>Support: {{ contact_page.email_support }}</p>
+                        <a href="mailto:{{ contact_page.email_general }}" class="btn btn-outline-success mt-3">Send Email</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Contact Form Section -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card border-0 shadow">
+                    <div class="card-body p-5">
+                        <h2 class="text-center mb-4">{{ contact_page.form_title }}</h2>
+                        <form id="contactForm">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="name" class="form-label">Your Name</label>
+                                    <input type="text" class="form-control" id="name" placeholder="John Doe" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="email" class="form-label">Email Address</label>
+                                    <input type="email" class="form-control" id="email" placeholder="john@example.com" required>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="subject" class="form-label">Subject</label>
+                                <input type="text" class="form-control" id="subject" placeholder="How can we help you?">
+                            </div>
+                            <div class="mb-3">
+                                <label for="message" class="form-label">Message</label>
+                                <textarea class="form-control" id="message" rows="5" placeholder="Your message here..." required></textarea>
+                            </div>
+                            <div class="mb-3 form-check">
+                                <input type="checkbox" class="form-check-input" id="newsletter">
+                                <label class="form-check-label" for="newsletter">Subscribe to our newsletter</label>
+                            </div>
+                            <div class="text-center">
+                                <button type="submit" class="btn btn-success btn-lg">Send Message</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- FAQ Section -->
+<section class="py-5">
+    <div class="container">
+        <h2 class="text-center mb-5">{{ contact_page.faq_title }}</h2>
+        
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="accordion" id="contactFAQ">
+                    {% for faq in contact_faqs %}
+                    <div class="accordion-item border-0 mb-3 shadow-sm">
+                        <h2 class="accordion-header" id="heading{{ forloop.counter }}">
+                            <button class="accordion-button {% if not forloop.first %}collapsed{% endif %}" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ forloop.counter }}" aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}" aria-controls="collapse{{ forloop.counter }}">
+                                {{ faq.question }}
+                            </button>
+                        </h2>
+                        <div id="collapse{{ forloop.counter }}" class="accordion-collapse collapse {% if forloop.first %}show{% endif %}" aria-labelledby="heading{{ forloop.counter }}" data-bs-parent="#contactFAQ">
+                            <div class="accordion-body">
+                                {{ faq.answer }}
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center py-3">
+                        <p>No FAQs available at the moment.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Map Section -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-10">
+                <div class="card border-0 shadow">
+                    <div class="card-body p-0">
+                        <iframe src="{{ contact_page.map_embed_url }}" width="100%" height="450" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="py-5 bg-success text-white">
+    <div class="container text-center">
+        <h2 class="mb-4">{{ contact_page.cta_text }}</h2>
+        <p class="lead mb-4">{{ contact_page.cta_subtitle }}</p>
+        <a href="{% url 'accounts:register' %}" class="btn btn-light btn-lg me-2">Sign Up Now</a>
+        <a href="{% url 'site_config:pricing' %}" class="btn btn-outline-light btn-lg">View Pricing</a>
+    </div>
+</section>
+
+{% block extra_js %}
+<script>
+    document.getElementById('contactForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        // Here you would typically send the form data to your backend
+        alert('Thank you for your message! We will get back to you soon.');
+        this.reset();
+    });
+</script>
+{% endblock %}
+{% endblock %}

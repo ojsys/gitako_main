@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+
+{% block title %}About Us - Gitako Farm Management{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8 text-center">
+                <h1 class="display-4 fw-bold mb-4">{{ about_page.hero_title }}</h1>
+                <p class="lead mb-4">{{ about_page.hero_subtitle }}</p>
+                {% if about_page.hero_description %}
+                <p class="mb-4">{{ about_page.hero_description }}</p>
+                {% endif %}
+            </div>
+        </div>
+        {% if about_page.hero_image %}
+        <div class="row justify-content-center mt-4">
+            <div class="col-md-10">
+                <img src="{{ about_page.hero_image.url }}" alt="About Gitako" class="img-fluid rounded shadow">
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- Story Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="row justify-content-center mb-5">
+            <div class="col-md-8 text-center">
+                <h2 class="mb-4">{{ about_page.story_title }}</h2>
+                <p class="lead">{{ about_page.story_subtitle }}</p>
+            </div>
+        </div>
+        
+        <div class="row">
+            {% for section in story_sections %}
+            <div class="col-md-6 mb-4">
+                <div class="card border-0 shadow h-100">
+                    <div class="card-body p-4">
+                        <h3 class="card-title mb-3">{{ section.title }}</h3>
+                        <p class="card-text">{{ section.content }}</p>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12 text-center py-3">
+                <p>No story sections available at the moment.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- Values Section -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row justify-content-center mb-5">
+            <div class="col-md-8 text-center">
+                <h2 class="mb-4">{{ about_page.values_title }}</h2>
+                <p class="lead">The principles that guide everything we do at Gitako.</p>
+            </div>
+        </div>
+        
+        <div class="row">
+            {% for value in company_values %}
+            <div class="col-md-4 mb-4">
+                <div class="card border-0 shadow h-100">
+                    <div class="card-body p-4 text-center">
+                        <i class="material-icons text-success mb-3" style="font-size: 3rem;">{{ value.icon }}</i>
+                        <h3 class="card-title mb-3">{{ value.title }}</h3>
+                        <p class="card-text">{{ value.description }}</p>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12 text-center py-3">
+                <p>No company values available at the moment.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- Team Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="row justify-content-center mb-5">
+            <div class="col-md-8 text-center">
+                <h2 class="mb-4">{{ about_page.team_title }}</h2>
+                <p class="lead">The passionate individuals behind Gitako.</p>
+            </div>
+        </div>
+        
+        <div class="row">
+            {% for member in team_members %}
+            <div class="col-md-4 mb-4">
+                <div class="card border-0 shadow h-100">
+                    <img src="{{ member.image.url }}" class="card-img-top" alt="{{ member.name }}">
+                    <div class="card-body p-4 text-center">
+                        <h3 class="card-title mb-1">{{ member.name }}</h3>
+                        <p class="text-muted mb-3">{{ member.position }}</p>
+                        <p class="card-text mb-4">{{ member.bio }}</p>
+                        <div class="d-flex justify-content-center">
+                            {% if member.linkedin_url %}
+                            <a href="{{ member.linkedin_url }}" class="btn btn-outline-success btn-sm me-2" target="_blank">
+                                <i class="fab fa-linkedin-in"></i>
+                            </a>
+                            {% endif %}
+                            {% if member.twitter_url %}
+                            <a href="{{ member.twitter_url }}" class="btn btn-outline-success btn-sm me-2" target="_blank">
+                                <i class="fab fa-twitter"></i>
+                            </a>
+                            {% endif %}
+                            {% if member.github_url %}
+                            <a href="{{ member.github_url }}" class="btn btn-outline-success btn-sm" target="_blank">
+                                <i class="fab fa-github"></i>
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12 text-center py-3">
+                <p>No team members available at the moment.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="py-5 bg-success text-white">
+    <div class="container text-center">
+        <h2 class="mb-4">{{ about_page.cta_text }}</h2>
+        <p class="lead mb-4">{{ about_page.cta_subtitle }}</p>
+        <a href="{% url 'accounts:register' %}" class="btn btn-light btn-lg me-2">Sign Up Now</a>
+        <a href="{% url 'site_config:contact' %}" class="btn btn-outline-light btn-lg">Contact Us</a>
+    </div>
+</section>
+{% endblock %}
