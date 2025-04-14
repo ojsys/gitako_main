@@ -21,10 +21,11 @@ schema_view = get_schema_view(
 )
 
 urlpatterns = [
-    path('', TemplateView.as_view(template_name='home.html'), name='home'),
+    
     path('admin/', admin.site.urls),
     path('accounts/', include('apps.accounts.urls')),
     path('', include('apps.site_config.urls')),
+    path('dashboard/', include('apps.dashboard.urls')),
     path('api/', include('api.v1.urls')),
     
     # API documentation

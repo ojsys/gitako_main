@@ -1,0 +1,165 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="d-flex">
+    <!-- Dark Sidebar -->
+    <div class="sidebar bg-dark text-white" style="width: 220px; min-height: 100vh; position: fixed; left: 0; top: 0;">
+        <div class="text-center py-4">
+            <div class="rounded-circle bg-success mx-auto d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                <i class="material-icons text-white" style="font-size: 40px;">person</i>
+            </div>
+            <h5 class="text-uppercase mt-3 mb-0">{{ user.get_full_name|default:user.username }}</h5>
+            <p class="small text-muted">{{ user.get_user_type_display }}</p>
+        </div>
+        
+        <div class="px-3 mt-3">
+            <div class="nav-item {% if active_page == 'dashboard' %}active{% endif %}">
+                <a class="nav-link d-flex align-items-center py-3 text-white" href="{% url 'dashboard:index' %}">
+                    <i class="material-icons me-3" style="color: #00c853;">dashboard</i>
+                    <span class="text-uppercase fw-bold">Dashboard</span>
+                    {% if active_page == 'dashboard' %}
+                    <span class="ms-auto">
+                        <i class="material-icons text-success">chevron_right</i>
+                        <i class="material-icons text-success">chevron_right</i>
+                        <i class="material-icons text-success">chevron_right</i>
+                    </span>
+                    {% endif %}
+                </a>
+            </div>
+            
+            <div class="nav-item {% if active_page == 'dolor_sit' %}active{% endif %}">
+                <a class="nav-link d-flex align-items-center py-3 text-white" href="#">
+                    <i class="material-icons me-3">agriculture</i>
+                    <span>DOLOR SIT</span>
+                    {% if active_page == 'dolor_sit' %}
+                    <i class="material-icons ms-auto text-success">check</i>
+                    {% endif %}
+                </a>
+            </div>
+            
+            <div class="nav-item">
+                <a class="nav-link d-flex align-items-center py-3 text-white" href="#">
+                    <i class="material-icons me-3">inventory</i>
+                    <span>DOLOR SIT AMET</span>
+                </a>
+            </div>
+            
+            <div class="nav-item">
+                <a class="nav-link d-flex align-items-center py-3 text-white" href="#">
+                    <i class="material-icons me-3">analytics</i>
+                    <span>DOLOR SIT AMET</span>
+                </a>
+            </div>
+            
+            <div class="nav-item">
+                <a class="nav-link d-flex align-items-center py-3 text-white" href="#">
+                    <i class="material-icons me-3">settings</i>
+                    <span>DOLOR SIT AMET</span>
+                </a>
+            </div>
+            
+            <div class="mt-4">
+                <div class="nav-item {% if active_page == 'consectetuer' %}active{% endif %}">
+                    <a class="nav-link d-flex align-items-center py-3 text-white" href="#">
+                        <i class="material-icons me-3">category</i>
+                        <span>CONSECTETUER</span>
+                        {% if active_page == 'consectetuer' %}
+                        <i class="material-icons ms-auto text-success">chevron_right</i>
+                        {% endif %}
+                    </a>
+                </div>
+                
+                <div class="nav-item {% if active_page == 'adipiscing' %}active{% endif %}">
+                    <a class="nav-link d-flex align-items-center py-3 text-white" href="#">
+                        <i class="material-icons me-3">trending_up</i>
+                        <span>ADIPISCING</span>
+                        {% if active_page == 'adipiscing' %}
+                        <i class="material-icons ms-auto text-success">chevron_right</i>
+                        {% endif %}
+                    </a>
+                </div>
+                
+                <div class="nav-item {% if active_page == 'diam_nonummy' %}active{% endif %}">
+                    <a class="nav-link d-flex align-items-center py-3 text-white" href="#">
+                        <i class="material-icons me-3">bar_chart</i>
+                        <span>DIAM NONUMMY</span>
+                        {% if active_page == 'diam_nonummy' %}
+                        <i class="material-icons ms-auto text-success">chevron_right</i>
+                        {% endif %}
+                    </a>
+                </div>
+                
+                <div class="nav-item {% if active_page == 'nonummy_nibh' %}active{% endif %}">
+                    <a class="nav-link d-flex align-items-center py-3 text-white" href="#">
+                        <i class="material-icons me-3">pie_chart</i>
+                        <span>NONUMMY NIBH</span>
+                        {% if active_page == 'nonummy_nibh' %}
+                        <i class="material-icons ms-auto text-success">chevron_right</i>
+                        {% endif %}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="main-content" style="margin-left: 220px; width: calc(100% - 220px);">
+        <!-- Top Navigation Bar -->
+        <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom">
+            <div class="container-fluid">
+                <button class="navbar-toggler" type="button">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                
+                <div class="d-flex align-items-center ms-auto">
+                    <span class="text-muted me-3">LOREM IPSUM</span>
+                    <div class="rounded-circle bg-success d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                        <i class="material-icons text-white">person</i>
+                    </div>
+                </div>
+            </div>
+        </nav>
+        
+        <!-- Dashboard Stats Bar -->
+        <div class="bg-white border-bottom py-3">
+            <div class="container-fluid">
+                <div class="row align-items-center">
+                    <div class="col-md-3 d-flex align-items-center">
+                        <i class="material-icons me-2 text-dark">person</i>
+                        <div>
+                            <div class="small text-muted">Lorem ipsum</div>
+                            <div class="h4 mb-0">{{ total_users|default:"20,897" }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 d-flex align-items-center">
+                        <i class="material-icons me-2 text-success">person_add</i>
+                        <div>
+                            <div class="small text-muted">Lorem ipsum</div>
+                            <div class="h4 mb-0 text-success">{{ active_users|default:"5,894" }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 d-flex align-items-center">
+                        <i class="material-icons me-2 text-dark">group</i>
+                        <div>
+                            <div class="small text-muted">Lorem ipsum</div>
+                            <div class="h4 mb-0">{{ new_users|default:"3,893" }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 d-flex align-items-center">
+                        <i class="material-icons me-2 text-dark">people</i>
+                        <div>
+                            <div class="small text-muted">Lorem ipsum</div>
+                            <div class="h4 mb-0">{{ total_farmers|default:"7,896" }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Dashboard Content -->
+        <div class="container-fluid py-4">
+            {% block dashboard_content %}{% endblock %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -37,6 +37,7 @@ class SiteSettings(SingletonModel):
     # Contact Information
     contact_email = models.EmailField(blank=True, null=True)
     contact_phone = models.CharField(max_length=20, blank=True, null=True)
+    address = models.TextField(blank=True, null=True)
     
     # Social Media Links
     facebook_url = models.URLField(blank=True, null=True)
@@ -310,7 +311,7 @@ class ContactPage(SingletonModel):
     email_general = models.EmailField(default="info@gitako.com")
     email_support = models.EmailField(default="support@gitako.com")
     form_title = models.CharField(max_length=100, default="Send Us a Message")
-    map_embed_url = models.URLField(default="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3988.8177928497174!2d36.8170119!3d-1.2830983!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x182f10a22f8b05c5%3A0xece6bb3dea6c8c8c!2sNairobi%2C%20Kenya!5e0!3m2!1sen!2sus!4v1625123456789!5m2!1sen!2sus")
+    map_embed_url = models.URLField(max_length=400, default="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3988.8177928497174!2d36.8170119!3d-1.2830983!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x182f10a22f8b05c5%3A0xece6bb3dea6c8c8c!2sNairobi%2C%20Kenya!5e0!3m2!1sen!2sus!4v1625123456789!5m2!1sen!2sus")
     faq_title = models.CharField(max_length=100, default="Frequently Asked Questions")
     cta_text = models.CharField(max_length=100, default="Ready to Get Started?")
     cta_subtitle = models.TextField(default="Join thousands of farmers who are already using Gitako to improve their productivity and profitability.")
@@ -337,3 +338,5 @@ class ContactFAQ(models.Model):
         ordering = ['order']
         verbose_name = "Contact FAQ"
         verbose_name_plural = "Contact FAQs"
+
+

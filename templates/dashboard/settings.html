@@ -1,0 +1,152 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block title %}Settings - Gitako Farm Management{% endblock %}
+
+{% block dashboard_content %}
+<div class="row">
+    <div class="col-md-12 mb-4">
+        <div class="card border-0 shadow">
+            <div class="card-body">
+                <h2 class="mb-4">Account Settings</h2>
+                
+                <form method="post" action="{% url 'dashboard:update_settings' %}">
+                    {% csrf_token %}
+                    
+                    <h4 class="mb-3">Notifications</h4>
+                    <div class="mb-4">
+                        <div class="form-check form-switch mb-2">
+                            <input class="form-check-input" type="checkbox" id="email_notifications" name="email_notifications" {% if user.settings.email_notifications %}checked{% endif %}>
+                            <label class="form-check-label" for="email_notifications">Email Notifications</label>
+                        </div>
+                        <div class="form-check form-switch mb-2">
+                            <input class="form-check-input" type="checkbox" id="sms_notifications" name="sms_notifications" {% if user.settings.sms_notifications %}checked{% endif %}>
+                            <label class="form-check-label" for="sms_notifications">SMS Notifications</label>
+                        </div>
+                        <div class="form-check form-switch mb-2">
+                            <input class="form-check-input" type="checkbox" id="push_notifications" name="push_notifications" {% if user.settings.push_notifications %}checked{% endif %}>
+                            <label class="form-check-label" for="push_notifications">Push Notifications</label>
+                        </div>
+                    </div>
+                    
+                    <h4 class="mb-3">Dashboard Preferences</h4>
+                    <div class="mb-4">
+                        <div class="mb-3">
+                            <label for="default_dashboard" class="form-label">Default Dashboard View</label>
+                            <select class="form-select" id="default_dashboard" name="default_dashboard">
+                                <option value="standard" {% if user.settings.default_dashboard == 'standard' %}selected{% endif %}>Standard</option>
+                                <option value="compact" {% if user.settings.default_dashboard == 'compact' %}selected{% endif %}>Compact</option>
+                                <option value="detailed" {% if user.settings.default_dashboard == 'detailed' %}selected{% endif %}>Detailed</option>
+                            </select>
+                        </div>
+                        <div class="form-check form-switch mb-2">
+                            <input class="form-check-input" type="checkbox" id="show_weather" name="show_weather" {% if user.settings.show_weather %}checked{% endif %}>
+                            <label class="form-check-label" for="show_weather">Show Weather Widget</label>
+                        </div>
+                        <div class="form-check form-switch mb-2">
+                            <input class="form-check-input" type="checkbox" id="show_tasks" name="show_tasks" {% if user.settings.show_tasks %}checked{% endif %}>
+                            <label class="form-check-label" for="show_tasks">Show Tasks Widget</label>
+                        </div>
+                        <div class="form-check form-switch mb-2">
+                            <input class="form-check-input" type="checkbox" id="show_analytics" name="show_analytics" {% if user.settings.show_analytics %}checked{% endif %}>
+                            <label class="form-check-label" for="show_analytics">Show Analytics Widget</label>
+                        </div>
+                    </div>
+                    
+                    <h4 class="mb-3">Language and Region</h4>
+                    <div class="row mb-4">
+                        <div class="col-md-6 mb-3">
+                            <label for="language" class="form-label">Language</label>
+                            <select class="form-select" id="language" name="language">
+                                <option value="en" {% if user.settings.language == 'en' %}selected{% endif %}>English</option>
+                                <option value="fr" {% if user.settings.language == 'fr' %}selected{% endif %}>French</option>
+                                <option value="es" {% if user.settings.language == 'es' %}selected{% endif %}>Spanish</option>
+                                <option value="sw" {% if user.settings.language == 'sw' %}selected{% endif %}>Swahili</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="timezone" class="form-label">Timezone</label>
+                            <select class="form-select" id="timezone" name="timezone">
+                                <option value="UTC" {% if user.settings.timezone == 'UTC' %}selected{% endif %}>UTC</option>
+                                <option value="Africa/Nairobi" {% if user.settings.timezone == 'Africa/Nairobi' %}selected{% endif %}>East Africa Time (EAT)</option>
+                                <option value="Africa/Lagos" {% if user.settings.timezone == 'Africa/Lagos' %}selected{% endif %}>West Africa Time (WAT)</option>
+                                <option value="Africa/Cairo" {% if user.settings.timezone == 'Africa/Cairo' %}selected{% endif %}>Eastern European Time (EET)</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <h4 class="mb-3">Privacy</h4>
+                    <div class="mb-4">
+                        <div class="form-check form-switch mb-2">
+                            <input class="form-check-input" type="checkbox" id="public_profile" name="public_profile" {% if user.settings.public_profile %}checked{% endif %}>
+                            <label class="form-check-label" for="public_profile">Public Profile</label>
+                            <div class="form-text">Allow other users to view your profile information</div>
+                        </div>
+                        <div class="form-check form-switch mb-2">
+                            <input class="form-check-input" type="checkbox" id="share_location" name="share_location" {% if user.settings.share_location %}checked{% endif %}>
+                            <label class="form-check-label" for="share_location">Share Location</label>
+                            <div class="form-text">Allow the app to use your location for weather and local services</div>
+                        </div>
+                        <div class="form-check form-switch mb-2">
+                            <input class="form-check-input" type="checkbox" id="data_analytics" name="data_analytics" {% if user.settings.data_analytics %}checked{% endif %}>
+                            <label class="form-check-label" for="data_analytics">Data Analytics</label>
+                            <div class="form-text">Allow us to collect anonymous usage data to improve our services</div>
+                        </div>
+                    </div>
+                    
+                    <div class="text-end">
+                        <button type="submit" class="btn btn-success">Save Settings</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-12">
+        <div class="card border-0 shadow">
+            <div class="card-body">
+                <h3 class="mb-4">Data Management</h3>
+                
+                <div class="mb-4">
+                    <h5>Export Your Data</h5>
+                    <p>Download all your data in a portable format.</p>
+                    <a href="{% url 'dashboard:export_data' %}" class="btn btn-outline-primary">Export Data</a>
+                </div>
+                
+                <div class="mb-4">
+                    <h5>Delete Account</h5>
+                    <p class="text-danger">Warning: This action cannot be undone. All your data will be permanently deleted.</p>
+                    <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteAccountModal">
+                        Delete Account
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Account Modal -->
+<div class="modal fade" id="deleteAccountModal" tabindex="-1" aria-labelledby="deleteAccountModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteAccountModalLabel">Confirm Account Deletion</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete your account? This action cannot be undone and all your data will be permanently deleted.</p>
+                <form id="deleteAccountForm" method="post" action="{% url 'dashboard:delete_account' %}">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Enter your password to confirm</label>
+                        <input type="password" class="form-control" id="password" name="password" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" form="deleteAccountForm" class="btn btn-danger">Delete Account</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

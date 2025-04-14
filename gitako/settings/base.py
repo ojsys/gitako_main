@@ -44,6 +44,8 @@ LOCAL_APPS = [
     'apps.inventory',
     'apps.financials',
     'apps.site_config',
+    'apps.dashboard', 
+
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -73,6 +75,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'apps.site_config.context_processors.site_settings',
             ],
         },
     },

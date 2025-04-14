@@ -12,6 +12,28 @@ class RequestLogMiddleware(MiddlewareMixin):
         request.start_time = time.time()
         
     def process_response(self, request, response):
+        # The issue is here - trying to access request.body after it's been consumed
+        if request.method != 'GET':
+            # Don't try to access request.body directly
+            # Instead, check if the content type is multipart/form-data
+            content_type = request.META.get('CONTENT_TYPE', '')
+            if 'multipart/form-data' in content_type:
+                # Skip processing for multipart form data (file uploads)
+                return response
+                
+            # For other requests, you might want to try/except the body access
+            try:
+                # Only try to access body if it hasn't been consumed
+                if hasattr(request, '_body'):
+                    # Body has already been accessed, don't try again
+                    pass
+                else:
+                    # Your original logic here that used request.body
+                    pass
+            except Exception:
+                # If there's an error accessing the body, just continue
+                pass
+        
         if hasattr(request, 'start_time'):
             duration = time.time() - request.start_time
             

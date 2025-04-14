@@ -1,0 +1,277 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block title %}Dashboard - Gitako Farm Management{% endblock %}
+
+{% block dashboard_content %}
+<div class="row">
+    <!-- First Row - Circular Progress Widgets -->
+    <div class="col-md-4 mb-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center">
+                <div class="circular-progress mx-auto" style="width: 150px; height: 150px;">
+                    <div class="position-relative">
+                        <svg viewBox="0 0 100 100" style="transform: rotate(-90deg);">
+                            <circle cx="50" cy="50" r="45" fill="none" stroke="#e9ecef" stroke-width="8"></circle>
+                            <circle cx="50" cy="50" r="45" fill="none" stroke="#00c853" stroke-width="8" stroke-dasharray="283" stroke-dashoffset="85"></circle>
+                        </svg>
+                        <div class="position-absolute top-0 start-0 end-0 bottom-0 d-flex align-items-center justify-content-center">
+                            <div>
+                                <div class="small text-muted">LOREM IPSUM</div>
+                                <div class="h3 mb-0">420</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4 mb-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center">
+                <div class="circular-progress mx-auto" style="width: 150px; height: 150px;">
+                    <div class="position-relative">
+                        <svg viewBox="0 0 100 100" style="transform: rotate(-90deg);">
+                            <circle cx="50" cy="50" r="45" fill="none" stroke="#e9ecef" stroke-width="8"></circle>
+                            <circle cx="50" cy="50" r="45" fill="none" stroke="#6c757d" stroke-width="8" stroke-dasharray="283" stroke-dashoffset="113"></circle>
+                        </svg>
+                        <div class="position-absolute top-0 start-0 end-0 bottom-0 d-flex align-items-center justify-content-center">
+                            <div>
+                                <div class="small text-muted">LOREM IPSUM</div>
+                                <div class="h3 mb-0">330</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4 mb-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between mb-3">
+                    <div>
+                        <div class="small text-muted">LOREM IPSUM</div>
+                        <div class="h3 mb-0">25.40</div>
+                    </div>
+                    <div class="text-success h3">
+                        <span class="badge bg-success">254</span>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <div class="small text-muted">LOREM IPSUM DOLOR</div>
+                    <div class="small">Lorem ipsum dolor sit amet, consectetur adipiscing elit</div>
+                </div>
+                
+                <!-- Dot Grid -->
+                <div class="dot-grid">
+                    {% for i in "123456789012345"|make_list %}
+                    <span class="dot {% if forloop.counter|divisibleby:3 %}bg-secondary{% else %}bg-success{% endif %}"></span>
+                    {% endfor %}
+                </div>
+                
+                <div class="mt-3">
+                    <div class="small text-muted">Lorem ipsum</div>
+                    <div class="h4 text-success">5,894</div>
+                </div>
+                
+                <div class="mt-3">
+                    <div class="gauge-chart">
+                        <svg viewBox="0 0 100 50">
+                            <path d="M 10 45 A 40 40 0 0 1 90 45" fill="none" stroke="#e9ecef" stroke-width="10" stroke-linecap="round"></path>
+                            <path d="M 10 45 A 40 40 0 0 1 60 10" fill="none" stroke="#00c853" stroke-width="10" stroke-linecap="round"></path>
+                        </svg>
+                        <div class="gauge-value">254</div>
+                    </div>
+                    <div class="small text-center">
+                        <div>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed</div>
+                        <div>diam nonummy nibh euismod tincidunt</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Second Row - Text and Chart Widget -->
+    <div class="col-md-8 mb-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <h5 class="text-success mb-3">CONSECTETUER</h5>
+                
+                <p>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat. Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu.</p>
+                
+                <p>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud.</p>
+                
+                <p>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea.</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4 mb-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <div class="small text-muted">Lorem ipsum</div>
+                        <div class="h3 text-success">3,395</div>
+                    </div>
+                </div>
+                
+                <!-- Progress Bars -->
+                <div class="mb-3">
+                    <div class="progress mb-2" style="height: 20px;">
+                        <div class="progress-bar bg-success" role="progressbar" style="width: 85%"></div>
+                    </div>
+                    <div class="progress mb-2" style="height: 20px;">
+                        <div class="progress-bar bg-success" role="progressbar" style="width: 65%"></div>
+                    </div>
+                    <div class="progress mb-2" style="height: 20px;">
+                        <div class="progress-bar bg-success" role="progressbar" style="width: 45%"></div>
+                    </div>
+                </div>
+                
+                <div class="mt-4">
+                    <div class="small text-muted">Lorem ipsum</div>
+                    <div class="small">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed diam nonummy nibh euismod tincidunt</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Third Row - Chart Widget -->
+    <div class="col-md-8 mb-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between mb-4">
+                    <div>
+                        <div class="small text-muted">LOREM IPSUM DOLOR</div>
+                        <div class="h4 text-success">50.26</div>
+                    </div>
+                    <div>
+                        <span class="dot bg-success me-1"></span>
+                        <span class="dot bg-success me-1"></span>
+                    </div>
+                </div>
+                
+                <div class="chart-container" style="height: 200px;">
+                    <canvas id="lineChart"></canvas>
+                </div>
+                
+                <div class="mt-3 small text-muted">
+                    Lorem ipsum dolor sit amet, consectetur adipiscing elit
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Fourth Row - Metric Cards -->
+    <div class="col-md-4 mb-4">
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="small text-muted">Lorem ipsum</div>
+                    <div class="h4 mb-0">20,897</div>
+                </div>
+                <div>
+                    <svg width="80" height="30">
+                        <polyline points="0,25 15,20 30,10 45,15 60,5 75,10" fill="none" stroke="#00c853" stroke-width="2"></polyline>
+                        <polygon points="0,30 0,25 15,20 30,10 45,15 60,5 75,10 75,30" fill="rgba(0, 200, 83, 0.2)"></polygon>
+                    </svg>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="small text-muted">Lorem ipsum</div>
+                    <div class="h4 mb-0">20,897</div>
+                </div>
+                <div>
+                    <svg width="80" height="30">
+                        <polyline points="0,15 15,20 30,10 45,15 60,5 75,15" fill="none" stroke="#6c757d" stroke-width="2"></polyline>
+                        <polygon points="0,30 0,15 15,20 30,10 45,15 60,5 75,15 75,30" fill="rgba(108, 117, 125, 0.2)"></polygon>
+                    </svg>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <div class="small text-muted">50.26</div>
+                <div class="small text-muted">LOREM IPSUM DOLOR</div>
+                <div class="d-flex justify-content-between mt-2">
+                    <div class="bar-chart">
+                        <div class="bar bg-success" style="height: 40px;"></div>
+                    </div>
+                    <div class="bar-chart">
+                        <div class="bar bg-success" style="height: 60px;"></div>
+                    </div>
+                    <div class="bar-chart">
+                        <div class="bar bg-success" style="height: 30px;"></div>
+                    </div>
+                    <div class="bar-chart">
+                        <div class="bar bg-success" style="height: 50px;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Line Chart
+        const ctx = document.getElementById('lineChart').getContext('2d');
+        const lineChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                datasets: [{
+                    label: 'Performance',
+                    data: [30, 25, 35, 20, 30, 40],
+                    borderColor: '#00c853',
+                    backgroundColor: 'rgba(0, 200, 83, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }, {
+                    label: 'Average',
+                    data: [20, 15, 25, 30, 25, 30],
+                    borderColor: '#6c757d',
+                    backgroundColor: 'rgba(108, 117, 125, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            display: true,
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}
