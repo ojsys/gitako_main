@@ -4,10 +4,11 @@
 
 {% block dashboard_content %}
 <div class="row">
-    <!-- First Row - Circular Progress Widgets -->
+    <!-- Farm Overview Section -->
     <div class="col-md-4 mb-4">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body text-center">
+                <h5 class="text-success mb-3">Farm Health</h5>
                 <div class="circular-progress mx-auto" style="width: 150px; height: 150px;">
                     <div class="position-relative">
                         <svg viewBox="0 0 100 100" style="transform: rotate(-90deg);">
@@ -16,95 +17,310 @@
                         </svg>
                         <div class="position-absolute top-0 start-0 end-0 bottom-0 d-flex align-items-center justify-content-center">
                             <div>
-                                <div class="small text-muted">LOREM IPSUM</div>
-                                <div class="h3 mb-0">420</div>
+                                <div class="small text-muted">OVERALL SCORE</div>
+                                <div class="h3 mb-0">70%</div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
-    </div>
-    
-    <div class="col-md-4 mb-4">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center">
-                <div class="circular-progress mx-auto" style="width: 150px; height: 150px;">
-                    <div class="position-relative">
-                        <svg viewBox="0 0 100 100" style="transform: rotate(-90deg);">
-                            <circle cx="50" cy="50" r="45" fill="none" stroke="#e9ecef" stroke-width="8"></circle>
-                            <circle cx="50" cy="50" r="45" fill="none" stroke="#6c757d" stroke-width="8" stroke-dasharray="283" stroke-dashoffset="113"></circle>
-                        </svg>
-                        <div class="position-absolute top-0 start-0 end-0 bottom-0 d-flex align-items-center justify-content-center">
-                            <div>
-                                <div class="small text-muted">LOREM IPSUM</div>
-                                <div class="h3 mb-0">330</div>
-                            </div>
-                        </div>
-                    </div>
+                <div class="mt-3 small">
+                    Based on crop health, livestock condition, and resource utilization
                 </div>
             </div>
+            <div class="card-footer bg-white border-0">
+                <a href="#" class="btn btn-sm btn-outline-success w-100">View Details</a>
+            </div>
         </div>
     </div>
     
+    <!-- Crop Status - Enhanced with more information -->
     <div class="col-md-4 mb-4">
         <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white border-0 pb-0">
+                <h5 class="text-success mb-0">Crop Status</h5>
+            </div>
             <div class="card-body">
-                <div class="d-flex justify-content-between mb-3">
+                <div class="d-flex justify-content-between align-items-center mb-4">
                     <div>
-                        <div class="small text-muted">LOREM IPSUM</div>
-                        <div class="h3 mb-0">25.40</div>
+                        <div class="small text-muted">TOTAL CROPS</div>
+                        <div class="h3 mb-0">{{ total_crops|default:"5" }}</div>
                     </div>
-                    <div class="text-success h3">
-                        <span class="badge bg-success">254</span>
+                    <div class="text-success">
+                        <div class="circular-progress" style="width: 60px; height: 60px;">
+                            <div class="position-relative">
+                                <svg viewBox="0 0 100 100" style="transform: rotate(-90deg);">
+                                    <circle cx="50" cy="50" r="45" fill="none" stroke="#e9ecef" stroke-width="8"></circle>
+                                    <circle cx="50" cy="50" r="45" fill="none" stroke="#6c757d" stroke-width="8" stroke-dasharray="283" stroke-dashoffset="113"></circle>
+                                </svg>
+                                <div class="position-absolute top-0 start-0 end-0 bottom-0 d-flex align-items-center justify-content-center">
+                                    <div class="small fw-bold">60%</div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 
-                <div class="mb-3">
-                    <div class="small text-muted">LOREM IPSUM DOLOR</div>
-                    <div class="small">Lorem ipsum dolor sit amet, consectetur adipiscing elit</div>
-                </div>
-                
-                <!-- Dot Grid -->
-                <div class="dot-grid">
-                    {% for i in "123456789012345"|make_list %}
-                    <span class="dot {% if forloop.counter|divisibleby:3 %}bg-secondary{% else %}bg-success{% endif %}"></span>
-                    {% endfor %}
-                </div>
-                
-                <div class="mt-3">
-                    <div class="small text-muted">Lorem ipsum</div>
-                    <div class="h4 text-success">5,894</div>
-                </div>
-                
-                <div class="mt-3">
-                    <div class="gauge-chart">
-                        <svg viewBox="0 0 100 50">
-                            <path d="M 10 45 A 40 40 0 0 1 90 45" fill="none" stroke="#e9ecef" stroke-width="10" stroke-linecap="round"></path>
-                            <path d="M 10 45 A 40 40 0 0 1 60 10" fill="none" stroke="#00c853" stroke-width="10" stroke-linecap="round"></path>
-                        </svg>
-                        <div class="gauge-value">254</div>
+                <!-- Crop Distribution with Visual Representation -->
+                <div class="mb-4">
+                    <div class="small text-muted mb-2">CROP DISTRIBUTION</div>
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <div class="d-flex align-items-center">
+                                <div class="me-2" style="width: 12px; height: 12px; background-color: #00c853; border-radius: 2px;"></div>
+                                <div class="small">Maize</div>
+                                <div class="ms-auto small fw-bold">3 ha</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="d-flex align-items-center">
+                                <div class="me-2" style="width: 12px; height: 12px; background-color: #2196f3; border-radius: 2px;"></div>
+                                <div class="small">Tomatoes</div>
+                                <div class="ms-auto small fw-bold">1.5 ha</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="d-flex align-items-center">
+                                <div class="me-2" style="width: 12px; height: 12px; background-color: #ff9800; border-radius: 2px;"></div>
+                                <div class="small">Beans</div>
+                                <div class="ms-auto small fw-bold">2 ha</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="d-flex align-items-center">
+                                <div class="me-2" style="width: 12px; height: 12px; background-color: #9c27b0; border-radius: 2px;"></div>
+                                <div class="small">Potatoes</div>
+                                <div class="ms-auto small fw-bold">1 ha</div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="small text-center">
-                        <div>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed</div>
-                        <div>diam nonummy nibh euismod tincidunt</div>
+                </div>
+                
+                <!-- Horizontal Bar Chart for Distribution -->
+                <div class="mb-4">
+                    <div class="progress" style="height: 20px;">
+                        <div class="progress-bar bg-success" role="progressbar" style="width: 40%;" title="Maize: 3 ha"></div>
+                        <div class="progress-bar bg-primary" role="progressbar" style="width: 20%;" title="Tomatoes: 1.5 ha"></div>
+                        <div class="progress-bar bg-warning" role="progressbar" style="width: 27%;" title="Beans: 2 ha"></div>
+                        <div class="progress-bar bg-purple" role="progressbar" style="width: 13%;" title="Potatoes: 1 ha"></div>
+                    </div>
+                </div>
+                
+                <!-- Key Metrics -->
+                <div class="row g-3">
+                    <div class="col-6">
+                        <div class="border rounded p-3 text-center h-100">
+                            <div class="small text-muted">Expected Yield</div>
+                            <div class="h4 text-success mb-0">{{ expected_yield|default:"42" }}</div>
+                            <div class="small">tons</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="border rounded p-3 text-center h-100">
+                            <div class="small text-muted">Growth Stage</div>
+                            <div class="h4 text-primary mb-0">{{ growth_stage|default:"Mid" }}</div>
+                            <div class="small">season</div>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="border rounded p-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="small text-muted">Irrigation Status</div>
+                                    <div class="small">65% - Adequate</div>
+                                </div>
+                                <div class="gauge-mini">
+                                    <svg viewBox="0 0 100 50" width="60" height="30">
+                                        <path d="M 10 45 A 40 40 0 0 1 90 45" fill="none" stroke="#e9ecef" stroke-width="10" stroke-linecap="round"></path>
+                                        <path d="M 10 45 A 40 40 0 0 1 50 15" fill="none" stroke="#2196f3" stroke-width="10" stroke-linecap="round"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer bg-white border-0">
+                <a href="#" class="btn btn-sm btn-outline-success w-100">Manage Crops</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4 mb-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white border-0 pb-0">
+                <h5 class="text-success mb-0">Livestock Overview</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <div class="small text-muted">TOTAL ANIMALS</div>
+                        <div class="h3 mb-0">{{ total_livestock|default:"254" }}</div>
+                    </div>
+                    <div class="text-success">
+                        <div class="circular-progress" style="width: 60px; height: 60px;">
+                            <div class="position-relative">
+                                <svg viewBox="0 0 100 100" style="transform: rotate(-90deg);">
+                                    <circle cx="50" cy="50" r="45" fill="none" stroke="#e9ecef" stroke-width="8"></circle>
+                                    <circle cx="50" cy="50" r="45" fill="none" stroke="#00c853" stroke-width="8" stroke-dasharray="283" stroke-dashoffset="56"></circle>
+                                </svg>
+                                <div class="position-absolute top-0 start-0 end-0 bottom-0 d-flex align-items-center justify-content-center">
+                                    <div class="small fw-bold">80%</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Livestock Categories with Visual Representation -->
+                <div class="mb-4">
+                    <div class="small text-muted mb-2">LIVESTOCK DISTRIBUTION</div>
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <div class="d-flex align-items-center">
+                                <div class="me-2" style="width: 12px; height: 12px; background-color: #00c853; border-radius: 2px;"></div>
+                                <div class="small">Cattle</div>
+                                <div class="ms-auto small fw-bold">45</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="d-flex align-items-center">
+                                <div class="me-2" style="width: 12px; height: 12px; background-color: #2196f3; border-radius: 2px;"></div>
+                                <div class="small">Poultry</div>
+                                <div class="ms-auto small fw-bold">180</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="d-flex align-items-center">
+                                <div class="me-2" style="width: 12px; height: 12px; background-color: #ff9800; border-radius: 2px;"></div>
+                                <div class="small">Goats</div>
+                                <div class="ms-auto small fw-bold">20</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="d-flex align-items-center">
+                                <div class="me-2" style="width: 12px; height: 12px; background-color: #9c27b0; border-radius: 2px;"></div>
+                                <div class="small">Sheep</div>
+                                <div class="ms-auto small fw-bold">9</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Horizontal Bar Chart for Distribution -->
+                <div class="mb-4">
+                    <div class="progress" style="height: 20px;">
+                        <div class="progress-bar bg-success" role="progressbar" style="width: 18%;" title="Cattle: 45"></div>
+                        <div class="progress-bar bg-primary" role="progressbar" style="width: 71%;" title="Poultry: 180"></div>
+                        <div class="progress-bar bg-warning" role="progressbar" style="width: 8%;" title="Goats: 20"></div>
+                        <div class="progress-bar bg-purple" role="progressbar" style="width: 3%;" title="Sheep: 9"></div>
+                    </div>
+                </div>
+                
+                <!-- Key Metrics -->
+                <div class="row g-3">
+                    <div class="col-6">
+                        <div class="border rounded p-3 text-center h-100">
+                            <div class="small text-muted">Milk Production</div>
+                            <div class="h4 text-success mb-0">{{ milk_production|default:"580" }}</div>
+                            <div class="small">liters/day</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="border rounded p-3 text-center h-100">
+                            <div class="small text-muted">Egg Collection</div>
+                            <div class="h4 text-primary mb-0">{{ egg_production|default:"120" }}</div>
+                            <div class="small">dozen/day</div>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="border rounded p-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="small text-muted">Feed Efficiency</div>
+                                    <div class="small">75% - Above Average</div>
+                                </div>
+                                <div class="gauge-mini">
+                                    <svg viewBox="0 0 100 50" width="60" height="30">
+                                        <path d="M 10 45 A 40 40 0 0 1 90 45" fill="none" stroke="#e9ecef" stroke-width="10" stroke-linecap="round"></path>
+                                        <path d="M 10 45 A 40 40 0 0 1 60 10" fill="none" stroke="#00c853" stroke-width="10" stroke-linecap="round"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer bg-white border-0">
+                <a href="#" class="btn btn-sm btn-outline-success w-100">Manage Livestock</a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Stats Bar -->
+    <div class="col-12 mb-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body py-3">
+                <div class="row">
+                    <div class="col-md-3 d-flex align-items-center border-end">
+                        <i class="material-icons me-2 text-success">person</i>
+                        <div>
+                            <div class="small text-muted">Farm Workers</div>
+                            <div class="h4 mb-0">{{ total_workers|default:"12" }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 d-flex align-items-center border-end">
+                        <i class="material-icons me-2 text-success">landscape</i>
+                        <div>
+                            <div class="small text-muted">Total Land Area</div>
+                            <div class="h4 mb-0">{{ total_land|default:"45" }} hectares</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 d-flex align-items-center border-end">
+                        <i class="material-icons me-2 text-success">water_drop</i>
+                        <div>
+                            <div class="small text-muted">Water Reserves</div>
+                            <div class="h4 mb-0">{{ water_reserves|default:"78" }}%</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 d-flex align-items-center">
+                        <i class="material-icons me-2 text-success">eco</i>
+                        <div>
+                            <div class="small text-muted">Sustainability Score</div>
+                            <div class="h4 mb-0">{{ sustainability_score|default:"82" }}%</div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
     
-    <!-- Second Row - Text and Chart Widget -->
+    <!-- Financial Overview -->
     <div class="col-md-8 mb-4">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body">
-                <h5 class="text-success mb-3">CONSECTETUER</h5>
+                <h5 class="text-success mb-3">Financial Overview</h5>
                 
-                <p>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat. Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu.</p>
+                <div class="chart-container" style="height: 200px;">
+                    <canvas id="financialChart"></canvas>
+                </div>
                 
-                <p>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud.</p>
-                
-                <p>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea.</p>
+                <div class="row mt-4">
+                    <div class="col-md-4">
+                        <div class="small text-muted">REVENUE (MONTH)</div>
+                        <div class="h4 text-success">{{ monthly_revenue|default:"$5,280" }}</div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="small text-muted">EXPENSES (MONTH)</div>
+                        <div class="h4">{{ monthly_expenses|default:"$3,150" }}</div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="small text-muted">PROFIT MARGIN</div>
+                        <div class="h4 text-success">{{ profit_margin|default:"40%" }}</div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer bg-white border-0">
+                <a href="#" class="btn btn-sm btn-outline-success w-100">View Financial Reports</a>
             </div>
         </div>
     </div>
@@ -112,110 +328,295 @@
     <div class="col-md-4 mb-4">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <div>
-                        <div class="small text-muted">Lorem ipsum</div>
-                        <div class="h3 text-success">3,395</div>
-                    </div>
-                </div>
+                <h5 class="text-success mb-3">Resource Utilization</h5>
                 
                 <!-- Progress Bars -->
                 <div class="mb-3">
-                    <div class="progress mb-2" style="height: 20px;">
-                        <div class="progress-bar bg-success" role="progressbar" style="width: 85%"></div>
+                    <div class="d-flex justify-content-between">
+                        <span class="small text-muted">Water Usage</span>
+                        <span class="small">{{ water_usage|default:"65%" }}</span>
                     </div>
                     <div class="progress mb-2" style="height: 20px;">
                         <div class="progress-bar bg-success" role="progressbar" style="width: 65%"></div>
                     </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <span class="small text-muted">Fertilizer</span>
+                        <span class="small">{{ fertilizer_usage|default:"45%" }}</span>
+                    </div>
                     <div class="progress mb-2" style="height: 20px;">
                         <div class="progress-bar bg-success" role="progressbar" style="width: 45%"></div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <span class="small text-muted">Feed Stock</span>
+                        <span class="small">{{ feed_stock|default:"85%" }}</span>
+                    </div>
+                    <div class="progress mb-2" style="height: 20px;">
+                        <div class="progress-bar bg-success" role="progressbar" style="width: 85%"></div>
                     </div>
                 </div>
                 
                 <div class="mt-4">
-                    <div class="small text-muted">Lorem ipsum</div>
-                    <div class="small">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed diam nonummy nibh euismod tincidunt</div>
+                    <div class="small text-muted">Sustainability Score</div>
+                    <div class="small">Your farm is using resources efficiently compared to similar farms in your region</div>
                 </div>
+            </div>
+            <div class="card-footer bg-white border-0">
+                <a href="#" class="btn btn-sm btn-outline-success w-100">Manage Resources</a>
             </div>
         </div>
     </div>
     
-    <!-- Third Row - Chart Widget -->
-    <div class="col-md-8 mb-4">
+    <!-- Weather Forecast - Now Separate -->
+    <div class="col-md-4 mb-4">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body">
                 <div class="d-flex justify-content-between mb-4">
                     <div>
-                        <div class="small text-muted">LOREM IPSUM DOLOR</div>
-                        <div class="h4 text-success">50.26</div>
+                        <h5 class="text-success">Weather Forecast</h5>
+                        <div class="small text-muted">{{ farm_location|default:"Nairobi Region" }}</div>
                     </div>
                     <div>
-                        <span class="dot bg-success me-1"></span>
-                        <span class="dot bg-success me-1"></span>
+                        <i class="material-icons text-warning" style="font-size: 2rem;">wb_sunny</i>
                     </div>
                 </div>
                 
-                <div class="chart-container" style="height: 200px;">
-                    <canvas id="lineChart"></canvas>
+                <div class="row mb-4">
+                    {% for day in "12345"|make_list %}
+                    <div class="col text-center">
+                        <div class="small">{{ forloop.counter|add:"-1" }}d</div>
+                        <i class="material-icons">{% cycle 'wb_sunny' 'cloud' 'wb_sunny' 'wb_cloudy' 'grain' %}</i>
+                        <div>{% cycle '28°' '26°' '27°' '25°' '24°' %}</div>
+                    </div>
+                    {% endfor %}
                 </div>
                 
-                <div class="mt-3 small text-muted">
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit
+                <div class="mt-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div class="small text-muted">Humidity</div>
+                        <div class="small">65%</div>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div class="small text-muted">Wind Speed</div>
+                        <div class="small">12 km/h</div>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="small text-muted">Precipitation</div>
+                        <div class="small">10%</div>
+                    </div>
                 </div>
+            </div>
+            <div class="card-footer bg-white border-0">
+                <a href="#" class="btn btn-sm btn-outline-success w-100">View Weather Details</a>
             </div>
         </div>
     </div>
     
-    <!-- Fourth Row - Metric Cards -->
+    <!-- Upcoming Tasks - Now Separate -->
     <div class="col-md-4 mb-4">
-        <div class="card border-0 shadow-sm mb-4">
-            <div class="card-body d-flex justify-content-between align-items-center">
-                <div>
-                    <div class="small text-muted">Lorem ipsum</div>
-                    <div class="h4 mb-0">20,897</div>
-                </div>
-                <div>
-                    <svg width="80" height="30">
-                        <polyline points="0,25 15,20 30,10 45,15 60,5 75,10" fill="none" stroke="#00c853" stroke-width="2"></polyline>
-                        <polygon points="0,30 0,25 15,20 30,10 45,15 60,5 75,10 75,30" fill="rgba(0, 200, 83, 0.2)"></polygon>
-                    </svg>
-                </div>
-            </div>
-        </div>
-        
-        <div class="card border-0 shadow-sm mb-4">
-            <div class="card-body d-flex justify-content-between align-items-center">
-                <div>
-                    <div class="small text-muted">Lorem ipsum</div>
-                    <div class="h4 mb-0">20,897</div>
-                </div>
-                <div>
-                    <svg width="80" height="30">
-                        <polyline points="0,15 15,20 30,10 45,15 60,5 75,15" fill="none" stroke="#6c757d" stroke-width="2"></polyline>
-                        <polygon points="0,30 0,15 15,20 30,10 45,15 60,5 75,15 75,30" fill="rgba(108, 117, 125, 0.2)"></polygon>
-                    </svg>
-                </div>
-            </div>
-        </div>
-        
-        <div class="card border-0 shadow-sm">
+        <div class="card border-0 shadow-sm h-100">
             <div class="card-body">
-                <div class="small text-muted">50.26</div>
-                <div class="small text-muted">LOREM IPSUM DOLOR</div>
-                <div class="d-flex justify-content-between mt-2">
-                    <div class="bar-chart">
-                        <div class="bar bg-success" style="height: 40px;"></div>
+                <h5 class="text-success mb-3">Upcoming Tasks</h5>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                        <div>
+                            <div>Harvest Maize - Field 3</div>
+                            <div class="small text-muted">High priority</div>
+                        </div>
+                        <span class="badge bg-danger rounded-pill">Today</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                        <div>
+                            <div>Vaccinate Cattle</div>
+                            <div class="small text-muted">Medium priority</div>
+                        </div>
+                        <span class="badge bg-warning rounded-pill">Tomorrow</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                        <div>
+                            <div>Apply Fertilizer - Field 2</div>
+                            <div class="small text-muted">Medium priority</div>
+                        </div>
+                        <span class="badge bg-info rounded-pill">In 2 days</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                        <div>
+                            <div>Repair Irrigation System</div>
+                            <div class="small text-muted">Low priority</div>
+                        </div>
+                        <span class="badge bg-secondary rounded-pill">In 3 days</span>
+                    </li>
+                </ul>
+            </div>
+            <div class="card-footer bg-white border-0">
+                <a href="#" class="btn btn-sm btn-outline-success w-100">View All Tasks</a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Activities -->
+    <div class="col-md-4 mb-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <h5 class="text-success mb-3">Recent Activities</h5>
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-marker bg-success"></div>
+                        <div class="timeline-content">
+                            <div class="d-flex justify-content-between">
+                                <div>Harvested Tomatoes</div>
+                                <div class="small text-muted">2h ago</div>
+                            </div>
+                            <div class="small text-muted">Field 1 - 250kg yield</div>
+                        </div>
                     </div>
-                    <div class="bar-chart">
-                        <div class="bar bg-success" style="height: 60px;"></div>
+                    <div class="timeline-item">
+                        <div class="timeline-marker bg-primary"></div>
+                        <div class="timeline-content">
+                            <div class="d-flex justify-content-between">
+                                <div>Purchased Feed</div>
+                                <div class="small text-muted">Yesterday</div>
+                            </div>
+                            <div class="small text-muted">500kg - $350</div>
+                        </div>
                     </div>
-                    <div class="bar-chart">
-                        <div class="bar bg-success" style="height: 30px;"></div>
+                    <div class="timeline-item">
+                        <div class="timeline-marker bg-warning"></div>
+                        <div class="timeline-content">
+                            <div class="d-flex justify-content-between">
+                                <div>Veterinary Visit</div>
+                                <div class="small text-muted">2 days ago</div>
+                            </div>
+                            <div class="small text-muted">Cattle vaccination</div>
+                        </div>
                     </div>
-                    <div class="bar-chart">
-                        <div class="bar bg-success" style="height: 50px;"></div>
+                    <div class="timeline-item">
+                        <div class="timeline-marker bg-info"></div>
+                        <div class="timeline-content">
+                            <div class="d-flex justify-content-between">
+                                <div>Planted Maize</div>
+                                <div class="small text-muted">1 week ago</div>
+                            </div>
+                            <div class="small text-muted">Field 4 - 2 hectares</div>
+                        </div>
                     </div>
                 </div>
+            </div>
+            <div class="card-footer bg-white border-0">
+                <a href="#" class="btn btn-sm btn-outline-success w-100">View All Activities</a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Market Prices -->
+    <div class="col-md-6 mb-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <h5 class="text-success mb-3">Market Prices</h5>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Price</th>
+                                <th>Change</th>
+                                <th>Trend</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Maize (per kg)</td>
+                                <td>{{ maize_price|default:"$0.45" }}</td>
+                                <td class="text-success">+5.2%</td>
+                                <td><i class="material-icons text-success small">trending_up</i></td>
+                            </tr>
+                            <tr>
+                                <td>Milk (per liter)</td>
+                                <td>{{ milk_price|default:"$0.80" }}</td>
+                                <td class="text-success">+2.8%</td>
+                                <td><i class="material-icons text-success small">trending_up</i></td>
+                            </tr>
+                            <tr>
+                                <td>Eggs (per dozen)</td>
+                                <td>{{ eggs_price|default:"$2.50" }}</td>
+                                <td class="text-danger">-1.5%</td>
+                                <td><i class="material-icons text-danger small">trending_down</i></td>
+                            </tr>
+                            <tr>
+                                <td>Beef (per kg)</td>
+                                <td>{{ beef_price|default:"$5.20" }}</td>
+                                <td>0.0%</td>
+                                <td><i class="material-icons text-secondary small">trending_flat</i></td>
+                            </tr>
+                            <tr>
+                                <td>Tomatoes (per kg)</td>
+                                <td>{{ tomatoes_price|default:"$1.20" }}</td>
+                                <td class="text-success">+8.3%</td>
+                                <td><i class="material-icons text-success small">trending_up</i></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card-footer bg-white border-0">
+                <a href="#" class="btn btn-sm btn-outline-success w-100">View Market Analysis</a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Inventory Alerts -->
+    <div class="col-md-6 mb-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <h5 class="text-success mb-3">Inventory Status</h5>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Item</th>
+                                <th>Current Stock</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Feed Stock</td>
+                                <td>250 kg</td>
+                                <td><span class="badge bg-warning">Low</span></td>
+                                <td><a href="#" class="btn btn-sm btn-outline-success">Order</a></td>
+                            </tr>
+                            <tr>
+                                <td>Fertilizer</td>
+                                <td>500 kg</td>
+                                <td><span class="badge bg-success">Adequate</span></td>
+                                <td><a href="#" class="btn btn-sm btn-outline-secondary">View</a></td>
+                            </tr>
+                            <tr>
+                                <td>Vaccines</td>
+                                <td>15 doses</td>
+                                <td><span class="badge bg-danger">Critical</span></td>
+                                <td><a href="#" class="btn btn-sm btn-outline-danger">Order Now</a></td>
+                            </tr>
+                            <tr>
+                                <td>Seeds (Maize)</td>
+                                <td>25 kg</td>
+                                <td><span class="badge bg-success">Adequate</span></td>
+                                <td><a href="#" class="btn btn-sm btn-outline-secondary">View</a></td>
+                            </tr>
+                            <tr>
+                                <td>Pesticides</td>
+                                <td>30 liters</td>
+                                <td><span class="badge bg-warning">Low</span></td>
+                                <td><a href="#" class="btn btn-sm btn-outline-success">Order</a></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card-footer bg-white border-0">
+                <a href="#" class="btn btn-sm btn-outline-success w-100">Manage Inventory</a>
             </div>
         </div>
     </div>
@@ -226,22 +627,22 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Line Chart
-        const ctx = document.getElementById('lineChart').getContext('2d');
-        const lineChart = new Chart(ctx, {
+        // Financial Chart
+        const ctx = document.getElementById('financialChart').getContext('2d');
+        const financialChart = new Chart(ctx, {
             type: 'line',
             data: {
                 labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
                 datasets: [{
-                    label: 'Performance',
-                    data: [30, 25, 35, 20, 30, 40],
+                    label: 'Revenue',
+                    data: [4200, 3800, 5100, 4500, 5280, 6000],
                     borderColor: '#00c853',
                     backgroundColor: 'rgba(0, 200, 83, 0.1)',
                     tension: 0.4,
                     fill: true
                 }, {
-                    label: 'Average',
-                    data: [20, 15, 25, 30, 25, 30],
+                    label: 'Expenses',
+                    data: [3000, 2800, 3200, 3000, 3150, 3400],
                     borderColor: '#6c757d',
                     backgroundColor: 'rgba(108, 117, 125, 0.1)',
                     tension: 0.4,
@@ -253,7 +654,8 @@
                 maintainAspectRatio: false,
                 plugins: {
                     legend: {
-                        display: false
+                        display: true,
+                        position: 'top'
                     }
                 },
                 scales: {
@@ -262,6 +664,11 @@
                         grid: {
                             display: true,
                             color: 'rgba(0, 0, 0, 0.05)'
+                        },
+                        ticks: {
+                            callback: function(value) {
+                                return '$' + value;
+                            }
                         }
                     },
                     x: {
@@ -274,4 +681,76 @@
         });
     });
 </script>
+
+<style>
+    .dot-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+    }
+    
+    .dot {
+        width: 15px;
+        height: 15px;
+        border-radius: 50%;
+        display: inline-block;
+    }
+    
+    .gauge-chart {
+        position: relative;
+        width: 100%;
+        height: 80px;
+        text-align: center;
+    }
+    
+    .gauge-value {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #00c853;
+    }
+    
+    .bar-chart {
+        width: 20px;
+        height: 80px;
+        display: flex;
+        align-items: flex-end;
+    }
+    
+    .bar {
+        width: 100%;
+        border-radius: 4px 4px 0 0;
+    }
+    
+    /* New styles for improved livestock section */
+    .bg-purple {
+        background-color: #9c27b0 !important;
+    }
+    
+    .gauge-mini {
+        position: relative;
+        text-align: center;
+    }
+    
+    .progress {
+        border-radius: 4px;
+        overflow: hidden;
+    }
+    
+    .progress-bar {
+        transition: width 1s ease;
+    }
+    
+    .border {
+        border-color: rgba(0,0,0,0.1) !important;
+    }
+    
+    .border:hover {
+        border-color: #00c853 !important;
+        transition: border-color 0.3s ease;
+    }
+</style>
 {% endblock %}

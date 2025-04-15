@@ -127,7 +127,7 @@
             <div class="col-md-4 mb-4">
                 <div class="card border-0 shadow h-100">
                     <div class="card-body p-4 text-center">
-                        <i class="material-icons text-success mb-3" style="font-size: 3rem;">{{ feature.icon }}</i>
+                        <i class="material-icons mb-3" style="font-size: 3rem; color:green;">{{ feature.icon }}</i>
                         <h3 class="card-title mb-3">{{ feature.title }}</h3>
                         <p class="card-text">{{ feature.description }}</p>
                     </div>
@@ -164,10 +164,10 @@
             <div class="col-md-3 mb-4 text-center">
                 <div class="card bg-white bg-opacity-10 border-0 h-100 hover-scale">
                     <div class="card-body p-4 d-flex flex-column align-items-center justify-content-center">
-                        <div class="stat-icon mb-3">
-                            <i class="material-icons" style="font-size: 2.5rem;">{{ stat.icon|default:"trending_up" }}</i>
+                        <div class="stat-icon mb-3" style="border: 2px solid green;">
+                            <i class="material-icons text-success" style="font-size: 2.5rem;">{{ stat.icon|default:"trending_up" }}</i>
                         </div>
-                        <h2 class="display-4 fw-bold mb-2 text-success">{{ stat.value }}</h2>
+                        <h2 class="display-4 fw-bold mb-2" style="color: green;">{{ stat.value }}</h2>
                         <p class="mb-0">{{ stat.label }}</p>
                     </div>
                 </div>
@@ -217,7 +217,7 @@
 </section>
 
 <!-- CTA Section -->
-<section class="py-5 bg-success text-white">
+<section class="py-5 text-white" style="background-color: green;">
     <div class="container text-center mt-5 mb-5">
         <h2 class="mb-4">Ready to Transform Your Farm?</h2>
         <p class="lead mb-4">Join thousands of farmers who are already using Gitako to improve their productivity and profitability.</p>

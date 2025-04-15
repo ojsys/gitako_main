@@ -1,157 +1,289 @@
 {% extends 'dashboard/base_dashboard.html' %}
+{% load form_filters %}
 
-{% block title %}Profile - Gitako Farm Management{% endblock %}
+{% block title %}My Profile - Gitako Farm Management{% endblock %}
 
 {% block dashboard_content %}
-<div class="card border-0 shadow mb-4">
-    <div class="card-body">
-        <h2 class="mb-4">Profile Information</h2>
-        
-        <form method="post" enctype="multipart/form-data">
-            {% csrf_token %}
+<div class="row">
+    <div class="col-12 mb-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
+                <h4 class="text-success mb-0">My Profile</h4>
+                <span class="badge bg-success text-white p-3 border border-success">{{ user.get_user_type_display }}</span>
+            </div>
             
-            <div class="row mb-4">
-                <div class="col-md-3 text-center">
-                    {% if user.profile_picture %}
-                    <img src="{{ user.profile_picture.url }}" alt="{{ user.username }}" class="rounded-circle img-fluid mb-3" style="max-width: 150px;">
-                    {% else %}
-                    <div class="bg-success rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 150px; height: 150px;">
-                        <span class="text-white display-4">{{ user.username.0|upper }}</span>
+            <div class="card-body">
+                {% if messages %}
+                <div class="mb-4">
+                    {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
-                    {% endif %}
-                    <div class="mb-3">
-                        <label for="profile_picture" class="form-label">Profile Picture</label>
-                        <input type="file" class="form-control" id="profile_picture" name="profile_picture">
-                    </div>
+                    {% endfor %}
                 </div>
+                {% endif %}
                 
-                <div class="col-md-9">
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="first_name" class="form-label">First Name</label>
-                            <input type="text" class="form-control" id="first_name" name="first_name" value="{{ user.first_name }}">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <div class="row g-4">
+                        <!-- User Profile Picture and Basic Info Card -->
+                        <div class="col-md-4">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-body text-center">
+                                    <div class="position-relative mb-4 mx-auto" style="width: 150px;">
+                                        {% if user.profile_picture %}
+                                        <img src="{{ user.profile_picture.url }}" alt="Profile Picture" class="img-fluid rounded-circle border border-3 border-success" style="width: 150px; height: 150px; object-fit: cover;">
+                                        {% else %}
+                                        <div class="rounded-circle bg-success d-flex align-items-center justify-content-center mx-auto border border-3 border-light" style="width: 150px; height: 150px;">
+                                            <i class="material-icons text-white" style="font-size: 64px;">person</i>
+                                        </div>
+                                        {% endif %}
+                                        <label for="{{ user_form.profile_picture.id_for_label }}" class="position-absolute bottom-0 end-0 bg-white rounded-circle shadow-sm d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; cursor: pointer;">
+                                            <i class="material-icons text-success">photo_camera</i>
+                                        </label>
+                                        {{ user_form.profile_picture|attr:"class:d-none" }}
+                                    </div>
+                                    
+                                    <h5 class="mb-1">{{ user.get_full_name|default:user.username }}</h5>
+                                    <p class="text-muted mb-3">{{ user.email }}</p>
+                                    
+                                    <div class="d-flex justify-content-center mb-3">
+                                        <div class="px-3 border-end">
+                                            <div class="small text-muted">Joined</div>
+                                            <div class="fw-bold">{{ user.date_joined|date:"M Y" }}</div>
+                                        </div>
+                                        <div class="px-3">
+                                            <div class="small text-muted">Status</div>
+                                            <div class="fw-bold text-success">Active</div>
+                                        </div>
+                                    </div>
+                                    
+                                    {% if user_form.profile_picture.errors %}
+                                    <div class="text-danger small">{{ user_form.profile_picture.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="last_name" class="form-label">Last Name</label>
-                            <input type="text" class="form-control" id="last_name" name="last_name" value="{{ user.last_name }}">
+                        
+                        <!-- User Information Tabs -->
+                        <div class="col-md-8">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-header bg-white border-0 pb-0">
+                                    <ul class="nav nav-tabs card-header-tabs" id="profileTabs" role="tablist">
+                                        <li class="nav-item" role="presentation">
+                                            <button class="nav-link active" id="personal-tab" data-bs-toggle="tab" data-bs-target="#personal" type="button" role="tab" aria-controls="personal" aria-selected="true">Personal Info</button>
+                                        </li>
+                                        <li class="nav-item" role="presentation">
+                                            <button class="nav-link" id="location-tab" data-bs-toggle="tab" data-bs-target="#location" type="button" role="tab" aria-controls="location" aria-selected="false">Location</button>
+                                        </li>
+                                        {% if profile_form %}
+                                        <li class="nav-item" role="presentation">
+                                            <button class="nav-link" id="business-tab" data-bs-toggle="tab" data-bs-target="#business" type="button" role="tab" aria-controls="business" aria-selected="false">
+                                                {% if user.user_type == 'farmer' %}
+                                                    Farm Details
+                                                {% elif user.user_type == 'supplier' %}
+                                                    Supplier Details
+                                                {% elif user.user_type == 'offtaker' %}
+                                                    Off-taker Details
+                                                {% endif %}
+                                            </button>
+                                        </li>
+                                        {% endif %}
+                                    </ul>
+                                </div>
+                                
+                                <div class="card-body">
+                                    <div class="tab-content" id="profileTabsContent">
+                                        <!-- Personal Information Tab -->
+                                        <div class="tab-pane fade show active" id="personal" role="tabpanel" aria-labelledby="personal-tab">
+                                            <div class="row g-3">
+                                                <div class="col-md-6">
+                                                    <label for="{{ user_form.first_name.id_for_label }}" class="form-label">First Name</label>
+                                                    {{ user_form.first_name|attr:"class:form-control" }}
+                                                    {% if user_form.first_name.errors %}
+                                                    <div class="text-danger small">{{ user_form.first_name.errors }}</div>
+                                                    {% endif %}
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label for="{{ user_form.last_name.id_for_label }}" class="form-label">Last Name</label>
+                                                    {{ user_form.last_name|attr:"class:form-control" }}
+                                                    {% if user_form.last_name.errors %}
+                                                    <div class="text-danger small">{{ user_form.last_name.errors }}</div>
+                                                    {% endif %}
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label for="{{ user_form.email.id_for_label }}" class="form-label">Email</label>
+                                                    {{ user_form.email|attr:"class:form-control" }}
+                                                    {% if user_form.email.errors %}
+                                                    <div class="text-danger small">{{ user_form.email.errors }}</div>
+                                                    {% endif %}
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label for="{{ user_form.phone_number.id_for_label }}" class="form-label">Phone Number</label>
+                                                    {{ user_form.phone_number|attr:"class:form-control" }}
+                                                    {% if user_form.phone_number.errors %}
+                                                    <div class="text-danger small">{{ user_form.phone_number.errors }}</div>
+                                                    {% endif %}
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label for="{{ user_form.date_of_birth.id_for_label }}" class="form-label">Date of Birth</label>
+                                                    {{ user_form.date_of_birth|attr:"class:form-control" }}
+                                                    {% if user_form.date_of_birth.errors %}
+                                                    <div class="text-danger small">{{ user_form.date_of_birth.errors }}</div>
+                                                    {% endif %}
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label class="form-label">Username</label>
+                                                    <input type="text" class="form-control" value="{{ user.username }}" readonly>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Location Tab -->
+                                        <div class="tab-pane fade" id="location" role="tabpanel" aria-labelledby="location-tab">
+                                            <div class="row g-3">
+                                                <div class="col-12">
+                                                    <label for="{{ user_form.address.id_for_label }}" class="form-label">Address</label>
+                                                    {{ user_form.address|attr:"class:form-control" }}
+                                                    {% if user_form.address.errors %}
+                                                    <div class="text-danger small">{{ user_form.address.errors }}</div>
+                                                    {% endif %}
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <label for="{{ user_form.city.id_for_label }}" class="form-label">City</label>
+                                                    {{ user_form.city|attr:"class:form-control" }}
+                                                    {% if user_form.city.errors %}
+                                                    <div class="text-danger small">{{ user_form.city.errors }}</div>
+                                                    {% endif %}
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <label for="{{ user_form.state.id_for_label }}" class="form-label">State/Province</label>
+                                                    {{ user_form.state|attr:"class:form-control" }}
+                                                    {% if user_form.state.errors %}
+                                                    <div class="text-danger small">{{ user_form.state.errors }}</div>
+                                                    {% endif %}
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <label for="{{ user_form.country.id_for_label }}" class="form-label">Country</label>
+                                                    {{ user_form.country|attr:"class:form-control" }}
+                                                    {% if user_form.country.errors %}
+                                                    <div class="text-danger small">{{ user_form.country.errors }}</div>
+                                                    {% endif %}
+                                                </div>
+                                                <div class="col-12 mt-4">
+                                                    <div class="card bg-light border-0">
+                                                        <div class="card-body">
+                                                            <div class="d-flex align-items-center">
+                                                                <i class="material-icons text-success me-3">info</i>
+                                                                <div class="small">Your location information helps us provide localized services such as weather forecasts and market prices relevant to your area.</div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Business/Farm Details Tab -->
+                                        {% if profile_form %}
+                                        <div class="tab-pane fade" id="business" role="tabpanel" aria-labelledby="business-tab">
+                                            <div class="row g-3">
+                                                {% for field in profile_form %}
+                                                <div class="col-md-6">
+                                                    <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                                                    {{ field|attr:"class:form-control" }}
+                                                    {% if field.help_text %}
+                                                    <div class="form-text small">{{ field.help_text }}</div>
+                                                    {% endif %}
+                                                    {% if field.errors %}
+                                                    <div class="text-danger small">{{ field.errors }}</div>
+                                                    {% endif %}
+                                                </div>
+                                                {% endfor %}
+                                                
+                                                <div class="col-12 mt-4">
+                                                    <div class="card bg-light border-0">
+                                                        <div class="card-body">
+                                                            <div class="d-flex align-items-center">
+                                                                <i class="material-icons text-success me-3">info</i>
+                                                                <div class="small">
+                                                                    {% if user.user_type == 'farmer' %}
+                                                                    Complete your farm details to get personalized recommendations for your crops and livestock.
+                                                                    {% elif user.user_type == 'supplier' %}
+                                                                    Providing detailed information about your products helps farmers find the supplies they need.
+                                                                    {% elif user.user_type == 'offtaker' %}
+                                                                    Specifying your preferred crops helps connect you with farmers who grow what you need.
+                                                                    {% endif %}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <div class="card-footer bg-white border-0">
+                                    <div class="d-flex justify-content-end">
+                                        <a href="{% url 'dashboard:index' %}" class="btn btn-outline-secondary me-2">Cancel</a>
+                                        <button type="submit" class="btn btn-success">
+                                            <i class="material-icons align-middle me-1" style="font-size: 18px;">save</i> Save Changes
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    
-                    <div class="mb-3">
-                        <label for="email" class="form-label">Email</label>
-                        <input type="email" class="form-control" id="email" name="email" value="{{ user.email }}">
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="phone_number" class="form-label">Phone Number</label>
-                        <input type="tel" class="form-control" id="phone_number" name="phone_number" value="{{ user.phone_number }}">
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="date_of_birth" class="form-label">Date of Birth</label>
-                        <input type="date" class="form-control" id="date_of_birth" name="date_of_birth" value="{{ user.date_of_birth|date:'Y-m-d' }}">
-                    </div>
-                </div>
+                </form>
             </div>
-            
-            <h3 class="mb-3">Location Information</h3>
-            <div class="row">
-                <div class="col-md-12 mb-3">
-                    <label for="address" class="form-label">Address</label>
-                    <input type="text" class="form-control" id="address" name="address" value="{{ user.address }}">
-                </div>
-                <div class="col-md-4 mb-3">
-                    <label for="city" class="form-label">City</label>
-                    <input type="text" class="form-control" id="city" name="city" value="{{ user.city }}">
-                </div>
-                <div class="col-md-4 mb-3">
-                    <label for="state" class="form-label">State/Province</label>
-                    <input type="text" class="form-control" id="state" name="state" value="{{ user.state }}">
-                </div>
-                <div class="col-md-4 mb-3">
-                    <label for="country" class="form-label">Country</label>
-                    <input type="text" class="form-control" id="country" name="country" value="{{ user.country }}">
-                </div>
-            </div>
-            
-            {% if user.user_type == 'farmer' and profile %}
-            <h3 class="mb-3">Farmer Information</h3>
-            <div class="row">
-                <div class="col-md-4 mb-3">
-                    <label for="farm_size_hectares" class="form-label">Farm Size (hectares)</label>
-                    <input type="number" step="0.01" class="form-control" id="farm_size_hectares" name="farm_size_hectares" value="{{ profile.farm_size_hectares }}">
-                </div>
-                <div class="col-md-4 mb-3">
-                    <label for="years_of_experience" class="form-label">Years of Experience</label>
-                    <input type="number" class="form-control" id="years_of_experience" name="years_of_experience" value="{{ profile.years_of_experience }}">
-                </div>
-                <div class="col-md-4 mb-3">
-                    <label for="primary_crop" class="form-label">Primary Crop</label>
-                    <input type="text" class="form-control" id="primary_crop" name="primary_crop" value="{{ profile.primary_crop }}">
-                </div>
-            </div>
-            {% endif %}
-            
-            {% if user.user_type == 'supplier' and profile %}
-            <h3 class="mb-3">Supplier Information</h3>
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label for="company_name" class="form-label">Company Name</label>
-                    <input type="text" class="form-control" id="company_name" name="company_name" value="{{ profile.company_name }}">
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label for="business_registration_number" class="form-label">Business Registration Number</label>
-                    <input type="text" class="form-control" id="business_registration_number" name="business_registration_number" value="{{ profile.business_registration_number }}">
-                </div>
-            </div>
-            {% endif %}
-            
-            {% if user.user_type == 'offtaker' and profile %}
-            <h3 class="mb-3">Off-taker Information</h3>
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label for="company_name" class="form-label">Company Name</label>
-                    <input type="text" class="form-control" id="company_name" name="company_name" value="{{ profile.company_name }}">
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label for="business_registration_number" class="form-label">Business Registration Number</label>
-                    <input type="text" class="form-control" id="business_registration_number" name="business_registration_number" value="{{ profile.business_registration_number }}">
-                </div>
-                <div class="col-md-12 mb-3">
-                    <label for="purchase_capacity" class="form-label">Purchase Capacity</label>
-                    <input type="text" class="form-control" id="purchase_capacity" name="purchase_capacity" value="{{ profile.purchase_capacity }}">
-                </div>
-            </div>
-            {% endif %}
-            
-            <div class="text-end">
-                <button type="submit" class="btn btn-success">Save Changes</button>
-            </div>
-        </form>
+        </div>
     </div>
 </div>
+{% endblock %}
 
-<div class="card border-0 shadow">
-    <div class="card-body">
-        <h3 class="mb-4">Change Password</h3>
-        <form method="post" action="{% url 'accounts:change_password' %}">
-            {% csrf_token %}
-            <div class="mb-3">
-                <label for="current_password" class="form-label">Current Password</label>
-                <input type="password" class="form-control" id="current_password" name="current_password">
-            </div>
-            <div class="mb-3">
-                <label for="new_password1" class="form-label">New Password</label>
-                <input type="password" class="form-control" id="new_password1" name="new_password1">
-            </div>
-            <div class="mb-3">
-                <label for="new_password2" class="form-label">Confirm New Password</label>
-                <input type="password" class="form-control" id="new_password2" name="new_password2">
-            </div>
-            <div class="text-end">
-                <button type="submit" class="btn btn-success">Change Password</button>
-            </div>
-        </form>
-    </div>
-</div>
+{% block extra_js %}
+<script>
+    // Handle profile picture upload
+    document.addEventListener('DOMContentLoaded', function() {
+        // Show filename when profile picture is selected
+        const profilePictureInput = document.getElementById('{{ user_form.profile_picture.id_for_label }}');
+        profilePictureInput.addEventListener('change', function() {
+            if (this.files && this.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const profileImage = document.querySelector('.rounded-circle.border-success') || 
+                                        document.querySelector('.rounded-circle.bg-success');
+                    
+                    // If it's a div with background color, replace it with an img
+                    if (profileImage.classList.contains('bg-success')) {
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
+                        img.alt = "Profile Picture";
+                        img.className = "img-fluid rounded-circle border border-3 border-success";
+                        img.style = "width: 150px; height: 150px; object-fit: cover;";
+                        profileImage.parentNode.replaceChild(img, profileImage);
+                    } else {
+                        // If it's already an img, just update the src
+                        profileImage.src = e.target.result;
+                    }
+                }
+                reader.readAsDataURL(this.files[0]);
+            }
+        });
+        
+        // Maintain active tab after form submission error
+        const urlParams = new URLSearchParams(window.location.search);
+        const activeTab = urlParams.get('tab');
+        if (activeTab) {
+            const tab = document.querySelector(`#profileTabs button[data-bs-target="#${activeTab}"]`);
+            if (tab) {
+                const tabInstance = new bootstrap.Tab(tab);
+                tabInstance.show();
+            }
+        }
+    });
+</script>
 {% endblock %}

@@ -1,5 +1,8 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from apps.accounts.models import FarmerProfile, SupplierProfile, OfftakerProfile
+from .forms import UserProfileForm, FarmerProfileForm, SupplierProfileForm, OfftakerProfileForm
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.http import require_POST
 from django.contrib import messages
@@ -64,66 +67,64 @@ def dashboard(request):
     return render(request, 'dashboard/dashboard.html', context)
 
 @login_required
-def profile(request):
-    """User profile view"""
+def profile_view(request):
+    """View and edit user profile"""
     user = request.user
     
-    # Get user profile based on user type
+    # Get or create the specific profile based on user type
     profile = None
-    if user.user_type == User.UserType.FARMER:
-        profile = getattr(user, 'farmer_profile', None)
-    elif user.user_type == User.UserType.SUPPLIER:
-        profile = getattr(user, 'supplier_profile', None)
-    elif user.user_type == User.UserType.OFFTAKER:
-        profile = getattr(user, 'offtaker_profile', None)
+    if user.user_type == 'farmer':
+        profile, created = FarmerProfile.objects.get_or_create(user=user)
+    elif user.user_type == 'supplier':
+        profile, created = SupplierProfile.objects.get_or_create(user=user)
+    elif user.user_type == 'offtaker':
+        profile, created = OfftakerProfile.objects.get_or_create(user=user)
     
     if request.method == 'POST':
-        # Update user information
-        user.first_name = request.POST.get('first_name', user.first_name)
-        user.last_name = request.POST.get('last_name', user.last_name)
-        user.email = request.POST.get('email', user.email)
-        user.phone_number = request.POST.get('phone_number', user.phone_number)
+        # Handle user form
+        user_form = UserProfileForm(request.POST, request.FILES, instance=user)
         
-        # Handle date of birth
-        date_of_birth = request.POST.get('date_of_birth')
-        if date_of_birth:
-            user.date_of_birth = date_of_birth
+        # Handle specific profile form based on user type
+        if user.user_type == 'farmer':
+            profile_form = FarmerProfileForm(request.POST, instance=profile)
+        elif user.user_type == 'supplier':
+            profile_form = SupplierProfileForm(request.POST, instance=profile)
+        elif user.user_type == 'offtaker':
+            profile_form = OfftakerProfileForm(request.POST, instance=profile)
+        else:
+            profile_form = None
         
-        # Handle address information
-        user.address = request.POST.get('address', user.address)
-        user.city = request.POST.get('city', user.city)
-        user.state = request.POST.get('state', user.state)
-        user.country = request.POST.get('country', user.country)
+        if user_form.is_valid() and (profile_form is None or profile_form.is_valid()):
+            user_form.save()
+            if profile_form:
+                profile_form.save()
+            messages.success(request, 'Profile updated successfully!')
+            return redirect('dashboard:profile')
+    else:
+        # Create forms with current data
+        user_form = UserProfileForm(instance=user)
         
-        # Handle profile picture
-        if 'profile_picture' in request.FILES:
-            user.profile_picture = request.FILES['profile_picture']
+        # Add CSS classes to form fields
+        for field_name, field in user_form.fields.items():
+            field.widget.attrs.update({'class': 'form-control'})
         
-        # Save user
-        user.save()
+        if user.user_type == 'farmer':
+            profile_form = FarmerProfileForm(instance=profile)
+        elif user.user_type == 'supplier':
+            profile_form = SupplierProfileForm(instance=profile)
+        elif user.user_type == 'offtaker':
+            profile_form = OfftakerProfileForm(instance=profile)
+        else:
+            profile_form = None
         
-        # Update profile based on user type
-        if user.user_type == User.UserType.FARMER and profile:
-            profile.farm_size_hectares = request.POST.get('farm_size_hectares', profile.farm_size_hectares)
-            profile.years_of_experience = request.POST.get('years_of_experience', profile.years_of_experience)
-            profile.primary_crop = request.POST.get('primary_crop', profile.primary_crop)
-            profile.save()
-        elif user.user_type == User.UserType.SUPPLIER and profile:
-            profile.company_name = request.POST.get('company_name', profile.company_name)
-            profile.business_registration_number = request.POST.get('business_registration_number', profile.business_registration_number)
-            profile.save()
-        elif user.user_type == User.UserType.OFFTAKER and profile:
-            profile.company_name = request.POST.get('company_name', profile.company_name)
-            profile.business_registration_number = request.POST.get('business_registration_number', profile.business_registration_number)
-            profile.purchase_capacity = request.POST.get('purchase_capacity', profile.purchase_capacity)
-            profile.save()
-        
-        messages.success(request, 'Profile updated successfully!')
-        return redirect('dashboard:profile')
+        # Add CSS classes to profile form fields if it exists
+        if profile_form:
+            for field_name, field in profile_form.fields.items():
+                field.widget.attrs.update({'class': 'form-control'})
     
     context = {
-        'user': user,
-        'profile': profile,
+        'user_form': user_form,
+        'profile_form': profile_form,
         'active_page': 'profile',
     }
     
