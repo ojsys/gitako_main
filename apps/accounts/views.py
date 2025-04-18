@@ -50,6 +50,8 @@ class LoginAPIView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+
+
 class LogoutAPIView(APIView):
     permission_classes = [permissions.IsAuthenticated]
     
@@ -92,7 +94,7 @@ def login_view(request):
         if user is not None:
             login(request, user)
             messages.success(request, f'Welcome back, {user.first_name}!')
-            return redirect('dashboard')
+            return redirect('dashboard:index')
         else:
             messages.error(request, 'Invalid username or password.')
     return render(request, 'accounts/login.html')
@@ -102,7 +104,7 @@ def login_view(request):
 def logout_view(request):
     logout(request)
     messages.info(request, 'You have been logged out.')
-    return redirect('home')
+    return redirect('site_config:home')
 
 
 @login_required
