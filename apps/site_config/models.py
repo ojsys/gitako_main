@@ -338,5 +338,3 @@ class ContactFAQ(models.Model):
         ordering = ['order']
         verbose_name = "Contact FAQ"
         verbose_name_plural = "Contact FAQs"
-
-

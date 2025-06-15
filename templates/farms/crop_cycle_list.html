@@ -1,0 +1,194 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block title %}Crop Cycles - Gitako Farm Management{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid px-4 py-4">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0 text-success">Crop Cycles</h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'dashboard:index' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'farms:crop_dashboard' %}">Crops</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Crop Cycles</li>
+                </ol>
+            </nav>
+        </div>
+        <div>
+            <a href="{% url 'farms:crop_list' %}" class="btn btn-outline-success">
+                <i class="material-icons small align-middle">agriculture</i> All Crops
+            </a>
+        </div>
+    </div>
+    
+    <!-- Status Filter -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <div class="d-flex flex-wrap gap-2">
+                <a href="{% url 'farms:crop_cycle_list' %}" class="btn {% if not status %}btn-success{% else %}btn-outline-success{% endif %} btn-sm">
+                    All
+                </a>
+                <a href="{% url 'farms:crop_cycle_list' %}?status=active" class="btn {% if status == 'active' %}btn-success{% else %}btn-outline-success{% endif %} btn-sm">
+                    Active
+                </a>
+                <a href="{% url 'farms:crop_cycle_list' %}?status=planned" class="btn {% if status == 'planned' %}btn-success{% else %}btn-outline-success{% endif %} btn-sm">
+                    Planned
+                </a>
+                <a href="{% url 'farms:crop_cycle_list' %}?status=completed" class="btn {% if status == 'completed' %}btn-success{% else %}btn-outline-success{% endif %} btn-sm">
+                    Completed
+                </a>
+                <a href="{% url 'farms:crop_cycle_list' %}?status=failed" class="btn {% if status == 'failed' %}btn-success{% else %}btn-outline-success{% endif %} btn-sm">
+                    Failed
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Crop Cycles List -->
+    <div class="row g-4">
+        {% if crop_cycles %}
+            {% for cycle in crop_cycles %}
+            <div class="col-md-6 col-lg-4">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="card-title mb-0">{{ cycle.crop.name }}</h5>
+                            <span class="badge {% if cycle.status == 'active' %}bg-success{% elif cycle.status == 'planned' %}bg-primary{% elif cycle.status == 'completed' %}bg-info{% else %}bg-secondary{% endif %}">
+                                {{ cycle.status|title }}
+                            </span>
+                        </div>
+                        <p class="card-text small text-muted mb-3">Field: {{ cycle.field.name }}</p>
+                        
+                        <div class="progress mb-3" style="height: 8px;">
+                            {% if cycle.status == 'active' %}
+                                {% with progress=cycle.get_growth_progress %}
+                                <div class="progress-bar bg-success" role="progressbar" style="width: {{ progress }}%" 
+                                     aria-valuenow="{{ progress }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                {% endwith %}
+                            {% elif cycle.status == 'completed' %}
+                                <div class="progress-bar bg-success" role="progressbar" style="width: 100%" 
+                                     aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div>
+                            {% elif cycle.status == 'planned' %}
+                                <div class="progress-bar bg-primary" role="progressbar" style="width: 0%" 
+                                     aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                            {% else %}
+                                <div class="progress-bar bg-secondary" role="progressbar" style="width: 100%" 
+                                     aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <div class="small text-muted">Planting Date</div>
+                                <div class="small fw-bold">{{ cycle.planting_date }}</div>
+                            </div>
+                            <div class="col-6">
+                                <div class="small text-muted">Expected Harvest</div>
+                                <div class="small fw-bold">{{ cycle.expected_harvest_date|default:"N/A" }}</div>
+                            </div>
+                        </div>
+                        
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <div class="small text-muted">Expected Yield</div>
+                                <div class="small fw-bold">{{ cycle.expected_yield_kg|floatformat:1|default:"N/A" }} kg</div>
+                            </div>
+                            <div class="col-6">
+                                <div class="small text-muted">Variety</div>
+                                <div class="small fw-bold">{{ cycle.crop_variety.name|default:"Standard" }}</div>
+                            </div>
+                        </div>
+                        
+                        {% if cycle.status == 'active' %}
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <div class="small text-muted">Growth Stage</div>
+                                <div class="small fw-bold">{{ cycle.current_growth_stage|default:"N/A" }}</div>
+                            </div>
+                            <div class="col-6">
+                                <div class="small text-muted">Health Status</div>
+                                <div class="small fw-bold">{{ cycle.health_status|default:"N/A" }}</div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if cycle.status == 'completed' %}
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <div class="small text-muted">Harvest Date</div>
+                                <div class="small fw-bold">{{ cycle.actual_harvest_date|default:"N/A" }}</div>
+                            </div>
+                            <div class="col-6">
+                                <div class="small text-muted">Actual Yield</div>
+                                <div class="small fw-bold">{{ cycle.actual_yield_kg|floatformat:1|default:"N/A" }} kg</div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="card-footer bg-white border-0">
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'farms:crop_detail' cycle.crop.id %}" class="btn btn-sm btn-outline-secondary">
+                                View Crop
+                            </a>
+                            <button class="btn btn-sm btn-outline-success">
+                                Manage Cycle
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body text-center py-5">
+                        <i class="material-icons text-muted" style="font-size: 48px;">eco</i>
+                        <p class="mt-3">No crop cycles found with the selected filter</p>
+                        {% if status %}
+                        <a href="{% url 'farms:crop_cycle_list' %}" class="btn btn-outline-success mt-2">
+                            View All Crop Cycles
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- Upcoming Harvests -->
+    {% if upcoming_harvests %}
+    <div class="mt-5">
+        <h2 class="h4 mb-4 text-success">Upcoming Harvests</h2>
+        
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Crop</th>
+                        <th>Field</th>
+                        <th>Variety</th>
+                        <th>Expected Harvest Date</th>
+                        <th>Expected Yield</th>
+                        <th>Days Until Harvest</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for cycle in upcoming_harvests %}
+                    <tr>
+                        <td>{{ cycle.crop.name }}</td>
+                        <td>{{ cycle.field.name }}</td>
+                        <td>{{ cycle.crop_variety.name|default:"Standard" }}</td>
+                        <td>{{ cycle.expected_harvest_date }}</td>
+                        <td>{{ cycle.expected_yield_kg|floatformat:1 }} kg</td>
+                        <td>{{ cycle.days_until_harvest }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

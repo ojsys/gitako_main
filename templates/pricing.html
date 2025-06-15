@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load humanize %}
 
 {% block title %}Pricing - Gitako Farm Management{% endblock %}
 
@@ -33,18 +34,18 @@
                 <div class="card h-100 border-0 shadow {% if plan.is_popular %}border-success border-2{% endif %}">
                     {% if plan.is_popular %}
                     <div class="card-header bg-success text-white text-center py-3">
-                        <span class="badge bg-white text-success">Most Popular</span>
+                        <span class="badge bg-white text-success" style="color: black !important;">Most Popular</span>
                     </div>
                     {% endif %}
                     <div class="card-body p-5">
                         <h3 class="card-title text-center mb-4">{{ plan.name }}</h3>
                         <p class="text-center text-muted mb-4">{{ plan.subtitle }}</p>
                         <div class="text-center mb-4">
-                            <h2 class="display-4 fw-bold mb-0 monthly-price">
-                                ${{ plan.monthly_price }}
+                            <h2 class="display-5 fw-bold mb-0 monthly-price">
+                                N{{ plan.monthly_price|intcomma }}
                             </h2>
-                            <h2 class="display-4 fw-bold mb-0 annual-price" style="display: none;">
-                                ${{ plan.annual_price }}
+                            <h2 class="display-5 fw-bold mb-0 annual-price" style="display: none;">
+                                N{{ plan.annual_price|intcomma }}
                             </h2>
                             <p class="text-muted">per month</p>
                         </div>

@@ -126,7 +126,7 @@
                 </div>
                 
                 <div class="nav-item {% if active_page == 'crops' %}active{% endif %}">
-                    <a class="nav-link d-flex align-items-center py-3 text-white" href="#">
+                    <a class="nav-link d-flex align-items-center py-3 text-white" href="{% url 'farms:crop_dashboard' %}">
                         <i class="material-icons me-3">agriculture</i>
                         <span>Crops</span>
                         {% if active_page == 'crops' %}

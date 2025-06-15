@@ -1,0 +1,472 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block title %}{{ crop.name }} - Gitako Farm Management{% endblock %}
+
+{% block extra_css %}
+<style>
+  .stat-card {
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  
+  .growing-condition {
+    border-left: 3px solid #00c853;
+    background-color: rgba(0,200,83,0.05);
+    padding: 10px 15px;
+    margin-bottom: 10px;
+    border-radius: 0 4px 4px 0;
+  }
+  
+  .variety-card {
+    transition: transform 0.2s;
+  }
+  .variety-card:hover {
+    transform: translateY(-3px);
+  }
+  
+  .cycle-timeline {
+    position: relative;
+    padding-left: 30px;
+  }
+  .cycle-timeline:before {
+    content: '';
+    position: absolute;
+    left: 10px;
+    top: 0;
+    height: 100%;
+    width: 2px;
+    background-color: #e0e0e0;
+  }
+  .cycle-timeline .timeline-item {
+    position: relative;
+    margin-bottom: 20px;
+  }
+  .cycle-timeline .timeline-item:before {
+    content: '';
+    position: absolute;
+    left: -30px;
+    top: 0;
+    height: 20px;
+    width: 20px;
+    border-radius: 50%;
+    background-color: #fff;
+    border: 2px solid #00c853;
+    z-index: 1;
+  }
+  .cycle-timeline .timeline-item.completed:before {
+    background-color: #00c853;
+  }
+  .cycle-timeline .timeline-item.current:before {
+    background-color: #fff;
+    border: 2px solid #ff9800;
+  }
+  .cycle-timeline .timeline-item.future:before {
+    background-color: #fff;
+    border: 2px solid #e0e0e0;
+  }
+</style>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid px-4 py-4">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0 text-success">{{ crop.name }}</h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'dashboard:index' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'farms:crop_dashboard' %}">Crops</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'farms:crop_list' %}">All Crops</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">{{ crop.name }}</li>
+                </ol>
+            </nav>
+        </div>
+        <div>
+            <button class="btn btn-success me-2">
+                <i class="material-icons small align-middle">add</i> New Crop Cycle
+            </button>
+            <a href="{% url 'farms:crop_list' %}" class="btn btn-outline-secondary">
+                <i class="material-icons small align-middle">arrow_back</i> Back to Crops
+            </a>
+        </div>
+    </div>
+    
+    <!-- Crop Overview -->
+    <div class="row g-4 mb-4">
+        <!-- Main Info -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-4">
+                        <div class="bg-success bg-opacity-10 p-3 rounded me-3">
+                            <i class="material-icons text-success" style="font-size: 32px;">agriculture</i>
+                        </div>
+                        <div>
+                            <h2 class="h4 mb-1">{{ crop.name }}</h2>
+                            <p class="text-muted mb-0">{{ crop.scientific_name }}</p>
+                        </div>
+                    </div>
+                    
+                    <h3 class="h5 mb-3">Description</h3>
+                    <p>{{ crop.description|default:"No description available." }}</p>
+                    
+                    <div class="row g-4 mt-2">
+                        <div class="col-md-6">
+                            <h3 class="h5 mb-3">Growing Information</h3>
+                            <table class="table table-sm">
+                                <tbody>
+                                    <tr>
+                                        <th scope="row" width="40%">Growing Season</th>
+                                        <td>{{ crop.growing_season|default:"N/A" }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row">Growing Period</th>
+                                        <td>{{ crop.average_growing_period_days|default:"N/A" }} days</td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row">Temperature Range</th>
+                                        <td>{{ crop.ideal_temperature_min|default:"N/A" }} - {{ crop.ideal_temperature_max|default:"N/A" }} °C</td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row">Rainfall Needs</th>
+                                        <td>{{ crop.ideal_rainfall_min|default:"N/A" }} - {{ crop.ideal_rainfall_max|default:"N/A" }} mm</td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row">Soil pH Range</th>
+                                        <td>{{ crop.ideal_soil_ph_min|default:"N/A" }} - {{ crop.ideal_soil_ph_max|default:"N/A" }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <h3 class="h5 mb-3">Optimal Growing Conditions</h3>
+                            <div class="growing-condition">
+                                <h6 class="mb-1">Soil Requirements</h6>
+                                <p class="small mb-0">{{ crop.name }} thrives in well-drained, loamy soil with good organic matter content. Maintain soil pH between {{ crop.ideal_soil_ph_min|default:"6.0" }} and {{ crop.ideal_soil_ph_max|default:"7.0" }} for optimal nutrient uptake.</p>
+                            </div>
+                            <div class="growing-condition">
+                                <h6 class="mb-1">Water Requirements</h6>
+                                <p class="small mb-0">Regular watering is essential, especially during flowering and fruit development stages. Aim for consistent soil moisture without waterlogging.</p>
+                            </div>
+                            <div class="growing-condition">
+                                <h6 class="mb-1">Sunlight Exposure</h6>
+                                <p class="small mb-0">Requires full sun exposure (6-8 hours daily) for optimal growth and yield. Partial shade may reduce productivity.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Crop Stats -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-0 pb-0">
+                    <h5 class="text-success mb-0">Crop Statistics</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-4">
+                        <div class="small text-muted mb-2">CURRENT STATUS</div>
+                        <div class="d-flex align-items-center">
+                            <div class="me-2" style="width: 12px; height: 12px; background-color: #00c853; border-radius: 50%;"></div>
+                            <div>Active in {{ active_cycles.count|default:"2" }} fields</div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <div class="small text-muted mb-2">TOTAL AREA PLANTED</div>
+                        <div class="h4 mb-0">{{ active_cycles|length|default:"2.5" }} hectares</div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <div class="small text-muted mb-2">EXPECTED YIELD</div>
+                        <div class="h4 mb-0">{{ expected_yield|default:"1,250" }} kg</div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <div class="small text-muted mb-2">HISTORICAL PERFORMANCE</div>
+                        <div class="progress mb-2" style="height: 8px;">
+                            <div class="progress-bar bg-success" role="progressbar" style="width: 85%" aria-valuenow="85" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                        <div class="small">85% success rate based on past cycles</div>
+                    </div>
+                    
+                    <div>
+                        <div class="small text-muted mb-2">MARKET PRICE TREND</div>
+                        <div class="d-flex align-items-center">
+                            <div class="h4 mb-0 me-2">$0.75/kg</div>
+                            <span class="badge bg-success">+5.2%</span>
+                        </div>
+                        <div class="small text-muted">Current market average</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Crop Varieties -->
+    <div class="mb-4">
+        <h3 class="h4 mb-3 text-success">Crop Varieties</h3>
+        <div class="row g-4">
+            {% if varieties %}
+                {% for variety in varieties %}
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm h-100 variety-card">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ variety.name }}</h5>
+                            <p class="card-text small">{{ variety.description|truncatechars:100 }}</p>
+                            <div class="row g-2 mb-3">
+                                <div class="col-6">
+                                    <div class="small text-muted">Maturity</div>
+                                    <div class="small fw-bold">{{ variety.maturity_days|default:"N/A" }} days</div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="small text-muted">Yield Potential</div>
+                                    <div class="small fw-bold">{{ variety.yield_potential|default:"N/A" }}</div>
+                                </div>
+                            </div>
+                            <div class="small text-muted mb-1">Disease Resistance</div>
+                            <div class="small">{{ variety.disease_resistance|default:"N/A" }}</div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="col-12">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body text-center py-5">
+                            <i class="material-icons text-muted" style="font-size: 48px;">eco</i>
+                            <p class="mt-3">No varieties found for this crop</p>
+                            <button class="btn btn-outline-success mt-2">
+                                <i class="material-icons small align-middle">add</i> Add Variety
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Active Crop Cycles -->
+    <div class="mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h3 class="h4 mb-0 text-success">Active Crop Cycles</h3>
+            <button class="btn btn-outline-success">
+                <i class="material-icons small align-middle">add</i> New Cycle
+            </button>
+        </div>
+        
+        <div class="row g-4">
+            {% if active_cycles %}
+                {% for cycle in active_cycles %}
+                <div class="col-md-6">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5 class="card-title mb-0">{{ cycle.field.name }}</h5>
+                                <span class="badge {% if cycle.status == 'active' %}bg-success{% elif cycle.status == 'planned' %}bg-primary{% else %}bg-secondary{% endif %}">
+                                    {{ cycle.status|title }}
+                                </span>
+                            </div>
+                            
+                            <div class="progress mb-3" style="height: 8px;">
+                                {% if cycle.status == 'active' %}
+                                    {% with progress=cycle.get_growth_progress|default:65 %}
+                                    <div class="progress-bar bg-success" role="progressbar" style="width: {{ progress }}%" 
+                                         aria-valuenow="{{ progress }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                    {% endwith %}
+                                {% elif cycle.status == 'planned' %}
+                                    <div class="progress-bar bg-primary" role="progressbar" style="width: 0%" 
+                                         aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="row g-2 mb-3">
+                                <div class="col-6">
+                                    <div class="small text-muted">Planting Date</div>
+                                    <div class="small fw-bold">{{ cycle.planting_date }}</div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="small text-muted">Expected Harvest</div>
+                                    <div class="small fw-bold">{{ cycle.expected_harvest_date|default:"N/A" }}</div>
+                                </div>
+                            </div>
+                            
+                            <div class="row g-2 mb-3">
+                                <div class="col-6">
+                                    <div class="small text-muted">Variety</div>
+                                    <div class="small fw-bold">{{ cycle.crop_variety.name|default:"Standard" }}</div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="small text-muted">Expected Yield</div>
+                                    <div class="small fw-bold">{{ cycle.expected_yield_kg|floatformat:1|default:"N/A" }} kg</div>
+                                </div>
+                            </div>
+                            
+                            <div class="cycle-timeline mt-4">
+                                <div class="timeline-item completed">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <h6 class="mb-0">Planting</h6>
+                                            <p class="small text-muted mb-0">{{ cycle.planting_date }}</p>
+                                        </div>
+                                        <div>
+                                            <span class="badge bg-success">Completed</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="timeline-item current">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <h6 class="mb-0">Growth Stage</h6>
+                                            <p class="small text-muted mb-0">Vegetative Growth</p>
+                                        </div>
+                                        <div>
+                                            <span class="badge bg-warning">In Progress</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="timeline-item future">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <h6 class="mb-0">Harvest</h6>
+                                            <p class="small text-muted mb-0">{{ cycle.expected_harvest_date|default:"N/A" }}</p>
+                                        </div>
+                                        <div>
+                                            <span class="badge bg-secondary">Upcoming</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-white border-0">
+                            <div class="d-flex justify-content-between">
+                                <button class="btn btn-sm btn-outline-success">
+                                    <i class="material-icons small align-middle">edit</i> Update Status
+                                </button>
+                                <button class="btn btn-sm btn-outline-primary">
+                                    <i class="material-icons small align-middle">visibility</i> View Details
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="col-12">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body text-center py-5">
+                            <i class="material-icons text-muted" style="font-size: 48px;">eco</i>
+                            <p class="mt-3">No active crop cycles found</p>
+                            <button class="btn btn-success mt-2">
+                                <i class="material-icons small align-middle">add</i> Start New Crop Cycle
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Historical Data -->
+    <div>
+        <h3 class="h4 mb-3 text-success">Historical Performance</h3>
+        
+        <div class="row g-4">
+            <div class="col-md-8">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white border-0 pb-0">
+                        <h5 class="text-success mb-0">Past Crop Cycles</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if historical_cycles %}
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Field</th>
+                                            <th>Planting Date</th>
+                                            <th>Harvest Date</th>
+                                            <th>Variety</th>
+                                            <th>Yield</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for cycle in historical_cycles %}
+                                        <tr>
+                                            <td>{{ cycle.field.name }}</td>
+                                            <td>{{ cycle.planting_date }}</td>
+                                            <td>{{ cycle.actual_harvest_date|default:"N/A" }}</td>
+                                            <td>{{ cycle.crop_variety.name|default:"Standard" }}</td>
+                                            <td>{{ cycle.actual_yield_kg|floatformat:1|default:"N/A" }} kg</td>
+                                            <td>
+                                                <span class="badge {% if cycle.status == 'harvested' %}bg-success{% else %}bg-danger{% endif %}">
+                                                    {{ cycle.status|title }}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <div class="text-center py-5">
+                                <i class="material-icons text-muted" style="font-size: 48px;">history</i>
+                                <p class="mt-3">No historical data available yet</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header bg-white border-0 pb-0">
+                        <h5 class="text-success mb-0">Yield Performance</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="text-center py-4">
+                            <div class="circular-progress mx-auto" style="width: 150px; height: 150px;">
+                                <div class="position-relative">
+                                    <svg viewBox="0 0 100 100" style="transform: rotate(-90deg);">
+                                        <circle cx="50" cy="50" r="45" fill="none" stroke="#e9ecef" stroke-width="8"></circle>
+                                        <circle cx="50" cy="50" r="45" fill="none" stroke="#00c853" stroke-width="8" stroke-dasharray="283" stroke-dashoffset="{{ 283|add:-283|add:56 }}"></circle>
+                                    </svg>
+                                    <div class="position-absolute top-0 start-0 end-0 bottom-0 d-flex align-items-center justify-content-center">
+                                        <div>
+                                            <div class="small text-muted">YIELD EFFICIENCY</div>
+                                            <div class="h3 mb-0">80%</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mt-3 small">
+                                Based on historical yield compared to expected yield
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div class="small">Average Yield</div>
+                                <div class="small fw-bold">1,200 kg/ha</div>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div class="small">Best Yield</div>
+                                <div class="small fw-bold">1,450 kg/ha</div>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="small">Lowest Yield</div>
+                                <div class="small fw-bold">950 kg/ha</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

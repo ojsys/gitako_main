@@ -1,0 +1,175 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block title %}{{ activity.title }} - Activity Details - Gitako Farm Management{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid px-4 py-4">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0 text-success">Activity Details</h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'dashboard:index' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'activities:activity_list' %}">Activities</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">{{ activity.title }}</li>
+                </ol>
+            </nav>
+        </div>
+        <div>
+            {% if activity.status != 'completed' %}
+            <a href="{% url 'activities:mark_activity_complete' activity.id %}" class="btn btn-success me-2">
+                <i class="material-icons small align-middle">check_circle</i> Mark Complete
+            </a>
+            {% endif %}
+            <a href="{% url 'activities:activity_edit' activity.id %}" class="btn btn-primary me-2">
+                <i class="material-icons small align-middle">edit</i> Edit
+            </a>
+            <a href="{% url 'activities:activity_delete' activity.id %}" class="btn btn-danger">
+                <i class="material-icons small align-middle">delete</i> Delete
+            </a>
+        </div>
+    </div>
+    
+    <div class="row">
+        <!-- Basic Information -->
+        <div class="col-md-6 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white border-0 pb-0">
+                    <h5 class="text-success mb-0">Basic Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-4 fw-bold">Title:</div>
+                        <div class="col-md-8">{{ activity.title }}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4 fw-bold">Activity Type:</div>
+                        <div class="col-md-8">{{ activity.get_activity_type_display }}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4 fw-bold">Status:</div>
+                        <div class="col-md-8">
+                            {% if activity.status == 'planned' %}
+                            <span class="badge bg-warning text-dark">Planned</span>
+                            {% elif activity.status == 'in_progress' %}
+                            <span class="badge bg-primary">In Progress</span>
+                            {% elif activity.status == 'completed' %}
+                            <span class="badge bg-success">Completed</span>
+                            {% elif activity.status == 'cancelled' %}
+                            <span class="badge bg-danger">Cancelled</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4 fw-bold">Description:</div>
+                        <div class="col-md-8">{{ activity.description|linebreaks }}</div>
+                    </div>
+                    {% if activity.notes %}
+                    <div class="row mb-3">
+                        <div class="col-md-4 fw-bold">Notes:</div>
+                        <div class="col-md-8">{{ activity.notes|linebreaks }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Location and Scheduling -->
+        <div class="col-md-6 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white border-0 pb-0">
+                    <h5 class="text-success mb-0">Location & Scheduling</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-4 fw-bold">Field:</div>
+                        <div class="col-md-8">{{ activity.field.name }}</div>
+                    </div>
+                    {% if activity.crop_cycle %}
+                    <div class="row mb-3">
+                        <div class="col-md-4 fw-bold">Crop Cycle:</div>
+                        <div class="col-md-8">{{ activity.crop_cycle.crop.name }} ({{ activity.crop_cycle.get_status_display }})</div>
+                    </div>
+                    {% endif %}
+                    <div class="row mb-3">
+                        <div class="col-md-4 fw-bold">Planned Date:</div>
+                        <div class="col-md-8">{{ activity.planned_date|date:"F j, Y" }}</div>
+                    </div>
+                    {% if activity.actual_date %}
+                    <div class="row mb-3">
+                        <div class="col-md-4 fw-bold">Actual Date:</div>
+                        <div class="col-md-8">{{ activity.actual_date|date:"F j, Y" }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Costs -->
+        <div class="col-md-6 mb-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0 pb-0">
+                    <h5 class="text-success mb-0">Costs</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-4 fw-bold">Labor Cost:</div>
+                        <div class="col-md-8">${{ activity.labor_cost|floatformat:2 }}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4 fw-bold">Material Cost:</div>
+                        <div class="col-md-8">${{ activity.material_cost|floatformat:2 }}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4 fw-bold">Other Cost:</div>
+                        <div class="col-md-8">${{ activity.other_cost|floatformat:2 }}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4 fw-bold">Total Cost:</div>
+                        <div class="col-md-8 fw-bold">${{ total_cost|floatformat:2 }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Weather Conditions -->
+        {% if activity.temperature or activity.humidity or activity.weather_notes %}
+        <div class="col-md-6 mb-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0 pb-0">
+                    <h5 class="text-success mb-0">Weather Conditions</h5>
+                </div>
+                <div class="card-body">
+                    {% if activity.temperature %}
+                    <div class="row mb-3">
+                        <div class="col-md-4 fw-bold">Temperature:</div>
+                        <div class="col-md-8">{{ activity.temperature }}°C</div>
+                    </div>
+                    {% endif %}
+                    {% if activity.humidity %}
+                    <div class="row mb-3">
+                        <div class="col-md-4 fw-bold">Humidity:</div>
+                        <div class="col-md-8">{{ activity.humidity }}%</div>
+                    </div>
+                    {% endif %}
+                    {% if activity.weather_notes %}
+                    <div class="row mb-3">
+                        <div class="col-md-4 fw-bold">Weather Notes:</div>
+                        <div class="col-md-8">{{ activity.weather_notes|linebreaks }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Back Button -->
+    <div class="mt-4">
+        <a href="{% url 'activities:activity_list' %}" class="btn btn-outline-secondary">
+            <i class="material-icons small align-middle">arrow_back</i> Back to Activities
+        </a>
+    </div>
+</div>
+{% endblock %}

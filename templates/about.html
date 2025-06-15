@@ -1,3 +1,4 @@
+
 {% extends 'base.html' %}
 
 {% block title %}About Us - Gitako Farm Management{% endblock %}
@@ -41,7 +42,7 @@
                 <div class="card border-0 shadow h-100">
                     <div class="card-body p-4">
                         <h3 class="card-title mb-3">{{ section.title }}</h3>
-                        <p class="card-text">{{ section.content }}</p>
+                        <p class="card-text">{{ section.content|safe }}</p>
                     </div>
                 </div>
             </div>
@@ -98,11 +99,11 @@
             {% for member in team_members %}
             <div class="col-md-4 mb-4">
                 <div class="card border-0 shadow h-100">
-                    <img src="{{ member.image.url }}" class="card-img-top" alt="{{ member.name }}">
+                    <img src="{{ member.image.url }}" class="card-img-top" alt="{{ member.name }}" style="height: 350px; object-fit: cover;">
                     <div class="card-body p-4 text-center">
                         <h3 class="card-title mb-1">{{ member.name }}</h3>
                         <p class="text-muted mb-3">{{ member.position }}</p>
-                        <p class="card-text mb-4">{{ member.bio }}</p>
+                        <div class="card-text mb-4">{{ member.bio|truncatewords:30|safe }} {% if member.bio|wordcount > 30 %}<a href="#" data-bs-toggle="modal" data-bs-target="#bioModal{{ member.id }}" class="text-success">Read more</a>{% endif %}</div>
                         <div class="d-flex justify-content-center">
                             {% if member.linkedin_url %}
                             <a href="{{ member.linkedin_url }}" class="btn btn-outline-success btn-sm me-2" target="_blank">
@@ -119,6 +120,22 @@
                                 <i class="fab fa-github"></i>
                             </a>
                             {% endif %}
+                        </div>
+                    </div>
+                    
+                </div>
+            </div>
+            <!-- Bio Modal -->
+            <div class="modal fade" id="bioModal{{ member.id }}" tabindex="-1" aria-labelledby="bioModalLabel{{ member.id }}" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="bioModalLabel{{ member.id }}">{{ member.name }}</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p class="mb-2 text-muted">{{ member.position }}</p>
+                            <div>{{ member.bio|safe }}</div>
                         </div>
                     </div>
                 </div>

@@ -10,34 +10,28 @@
                 </tr>
             </thead>
             <tbody>
-                <tr>
-                    <td>Maize</td>
-                    <td><span class="badge bg-success">Growing</span></td>
-                    <td>Mar 15</td>
-                    <td>Jul 20</td>
-                </tr>
-                <tr>
-                    <td>Tomatoes</td>
-                    <td><span class="badge bg-warning text-dark">Harvesting</span></td>
-                    <td>Feb 10</td>
-                    <td>May 25</td>
-                </tr>
-                <tr>
-                    <td>Beans</td>
-                    <td><span class="badge bg-info text-dark">Seedling</span></td>
-                    <td>Apr 05</td>
-                    <td>Jun 30</td>
-                </tr>
-                <tr>
-                    <td>Potatoes</td>
-                    <td><span class="badge bg-secondary">Planned</span></td>
-                    <td>May 10</td>
-                    <td>Aug 15</td>
-                </tr>
+                {% if active_crop_cycles %}
+                    {% for cycle in active_crop_cycles %}
+                    <tr>
+                        <td>{{ cycle.crop.name }}</td>
+                        <td>
+                            <span class="badge {% if cycle.status == 'active' %}bg-success{% elif cycle.status == 'planned' %}bg-secondary{% elif cycle.status == 'harvesting' %}bg-warning text-dark{% elif cycle.status == 'seedling' %}bg-info text-dark{% else %}bg-secondary{% endif %}">
+                                {{ cycle.status|title }}
+                            </span>
+                        </td>
+                        <td>{{ cycle.planting_date|date:"M d" }}</td>
+                        <td>{{ cycle.expected_harvest_date|date:"M d"|default:"--" }}</td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="4" class="text-center py-3">No active crop cycles</td>
+                    </tr>
+                {% endif %}
             </tbody>
         </table>
     </div>
     <div class="text-center mt-2">
-        <a href="#" class="btn btn-sm btn-outline-success">View All Crops</a>
+        <a href="{% url 'farms:crop_dashboard' %}" class="btn btn-sm btn-outline-success">View All Crops</a>
     </div>
 </div>

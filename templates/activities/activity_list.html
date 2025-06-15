@@ -1,0 +1,143 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block title %}Activities - Gitako Farm Management{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid px-4 py-4">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0 text-success">Farm Activities</h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'dashboard:index' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Activities</li>
+                </ol>
+            </nav>
+        </div>
+        <div>
+            <a href="{% url 'activities:activity_create' %}" class="btn btn-success">
+                <i class="material-icons small align-middle">add</i> New Activity
+            </a>
+        </div>
+    </div>
+    
+    <!-- Filters -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Status</label>
+                    <select class="form-select" name="status">
+                        <option value="">All Statuses</option>
+                        <option value="planned">Planned</option>
+                        <option value="in_progress">In Progress</option>
+                        <option value="completed">Completed</option>
+                        <option value="cancelled">Cancelled</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Activity Type</label>
+                    <select class="form-select" name="activity_type">
+                        <option value="">All Types</option>
+                        <option value="land_clearing">Land Clearing</option>
+                        <option value="land_preparation">Land Preparation</option>
+                        <option value="planting">Planting</option>
+                        <option value="fertilizer">Fertilizer Application</option>
+                        <option value="pest_control">Pest Control</option>
+                        <option value="weed_control">Weed Control</option>
+                        <option value="irrigation">Irrigation</option>
+                        <option value="harvesting">Harvesting</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Date Range</label>
+                    <div class="input-group">
+                        <input type="date" class="form-control" name="date_from" placeholder="From">
+                        <input type="date" class="form-control" name="date_to" placeholder="To">
+                    </div>
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <button type="submit" class="btn btn-outline-success w-100">Apply Filters</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Activities List -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-body">
+            {% if activities %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Type</th>
+                            <th>Field</th>
+                            <th>Crop</th>
+                            <th>Planned Date</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for activity in activities %}
+                        <tr>
+                            <td>{{ activity.title }}</td>
+                            <td>{{ activity.get_activity_type_display }}</td>
+                            <td>{{ activity.field.name }}</td>
+                            <td>{% if activity.crop_cycle %}{{ activity.crop_cycle.crop.name }}{% else %}-{% endif %}</td>
+                            <td>{{ activity.planned_date }}</td>
+                            <td>
+                                {% if activity.status == 'planned' %}
+                                <span class="badge bg-warning">Planned</span>
+                                {% elif activity.status == 'in_progress' %}
+                                <span class="badge bg-primary">In Progress</span>
+                                {% elif activity.status == 'completed' %}
+                                <span class="badge bg-success">Completed</span>
+                                {% elif activity.status == 'cancelled' %}
+                                <span class="badge bg-danger">Cancelled</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group">
+                                    <a href="{% url 'activities:activity_detail' activity_id=activity.id %}" class="btn btn-sm btn-outline-primary">
+                                        <i class="material-icons small">visibility</i>
+                                    </a>
+                                    <a href="{% url 'activities:activity_edit' activity_id=activity.id %}" class="btn btn-sm btn-outline-secondary">
+                                        <i class="material-icons small">edit</i>
+                                    </a>
+                                    {% if activity.status != 'completed' %}
+                                    <form method="post" action="{% url 'activities:mark_activity_complete' activity_id=activity.id %}" class="d-inline">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-outline-success">
+                                            <i class="material-icons small">check</i>
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                    <a href="{% url 'activities:activity_delete' activity_id=activity.id %}" class="btn btn-sm btn-outline-danger">
+                                        <i class="material-icons small">delete</i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="material-icons" style="font-size: 48px; color: #ccc;">event_note</i>
+                <h5 class="mt-3">No Activities Found</h5>
+                <p class="text-muted">You haven't added any farm activities yet.</p>
+                <a href="{% url 'activities:activity_create' %}" class="btn btn-success mt-2">
+                    <i class="material-icons small align-middle">add</i> Add Your First Activity
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
