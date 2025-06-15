@@ -1,11 +1,16 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.db.models import Count, Sum, Q
+from django.db.models import Count, Sum, Q, F
 from django.http import JsonResponse
 from .models import Farm, FarmSection, Crop, CropVariety, CropCycle
 from django.utils import timezone
 from datetime import timedelta
+
+# Add these imports at the top
+from apps.activities.models import Activity
+from apps.financials.models import Budget, BudgetItem
+
 
 @login_required
 def crop_list(request):
@@ -148,14 +153,40 @@ def crop_dashboard(request, crop_cycle_id=None):
                 })
         
         # Get recent activities for this crop cycle
-        from apps.activities.models import Activity
         recent_activities = Activity.objects.filter(crop_cycle=crop_cycle).order_by('-actual_date', '-planned_date')[:5]
+        
+        # Get budget data for the dashboard
+        # Get active budgets (current date falls between start_date and end_date)
+        today = timezone.now().date()
+        active_budgets = Budget.objects.filter(
+            user=request.user,
+            start_date__lte=today,
+            end_date__gte=today
+        )
+        active_budgets_count = active_budgets.count()
+        
+        # Get recent budgets
+        recent_budgets = Budget.objects.filter(user=request.user).order_by('-created_at')[:5]
+        
+        # Calculate total planned income and expenses
+        budget_totals = Budget.objects.filter(user=request.user).aggregate(
+            total_planned_income=Sum('total_planned_income'),
+            total_planned_expenses=Sum('total_planned_expenses')
+        )
+        
+        total_planned_income = budget_totals['total_planned_income'] or 0
+        total_planned_expenses = budget_totals['total_planned_expenses'] or 0
         
         context = {
             'crop_cycle': crop_cycle,
             'growth_percentage': growth_percentage,
             'upcoming_harvests': upcoming_harvests,
             'recent_activities': recent_activities,
+            # Budget data
+            'active_budgets_count': active_budgets_count,
+            'recent_budgets': recent_budgets,
+            'total_planned_income': total_planned_income,
+            'total_planned_expenses': total_planned_expenses,
         }
         
         return render(request, 'farms/crop_dashboard.html', context)
@@ -220,6 +251,26 @@ def crop_dashboard(request, crop_cycle_id=None):
             expected_harvest_date__lte=now+timedelta(days=30)
         ).select_related('crop', 'field')
         
+        # Get active budgets (current date falls between start_date and end_date)
+        active_budgets = Budget.objects.filter(
+            user=request.user,
+            start_date__lte=now,
+            end_date__gte=now
+        )
+        active_budgets_count = active_budgets.count()
+        
+        # Get recent budgets
+        recent_budgets = Budget.objects.filter(user=request.user).order_by('-created_at')[:5]
+        
+        # Calculate total planned income and expenses
+        budget_totals = Budget.objects.filter(user=request.user).aggregate(
+            total_planned_income=Sum('total_planned_income'),
+            total_planned_expenses=Sum('total_planned_expenses')
+        )
+        
+        total_planned_income = budget_totals['total_planned_income'] or 0
+        total_planned_expenses = budget_totals['total_planned_expenses'] or 0
+        
         context = {
             'farms': farms,
             'total_crops': total_crops,
@@ -227,7 +278,12 @@ def crop_dashboard(request, crop_cycle_id=None):
             'expected_yield': expected_yield,
             'growth_stage': growth_stage,
             'upcoming_harvests': upcoming_harvests,
-            'active_page': 'crops'
+            'active_page': 'crops',
+            # Budget data
+            'active_budgets_count': active_budgets_count,
+            'recent_budgets': recent_budgets,
+            'total_planned_income': total_planned_income,
+            'total_planned_expenses': total_planned_expenses,
         }
         
         return render(request, 'farms/crop_dashboard.html', context)

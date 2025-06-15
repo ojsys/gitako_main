@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+    <link rel="stylesheet" href="{% static 'css/financials.css' %}">
     <style>
         :root {
             --primary-color: #2e7d32;
@@ -210,6 +211,16 @@
                         <i class="material-icons me-3">account_balance</i>
                         <span>Financial Reports</span>
                         {% if active_page == 'finance' %}
+                        <i class="material-icons ms-auto text-success">chevron_right</i>
+                        {% endif %}
+                    </a>
+                </div>
+                
+                <div class="nav-item {% if active_page == 'budgets' %}active{% endif %}">
+                    <a class="nav-link d-flex align-items-center py-3 text-white" href="{% url 'financials:budget_dashboard' %}">
+                        <i class="material-icons me-3">attach_money</i>
+                        <span>Farm Budgets</span>
+                        {% if active_page == 'budgets' %}
                         <i class="material-icons ms-auto text-success">chevron_right</i>
                         {% endif %}
                     </a>

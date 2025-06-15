@@ -6,6 +6,7 @@ class Activity(models.Model):
     """Base model for all farm activities"""
     
     class ActivityType(models.TextChoices):
+        EMPTY = '', 'Select Activity Type'  # Empty choice
         LAND_CLEARING = 'land_clearing', 'Land Clearing'
         LAND_PREPARATION = 'land_preparation', 'Land Preparation'
         PLANTING = 'planting', 'Planting'
@@ -26,12 +27,13 @@ class Activity(models.Model):
     
     # Status
     STATUS_CHOICES = [
+         ('', 'Select Status'),
         ('planned', 'Planned'),
         ('in_progress', 'In Progress'),
         ('completed', 'Completed'),
         ('cancelled', 'Cancelled'),
     ]
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='planned')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='')
     
     # General information
     title = models.CharField(max_length=255)

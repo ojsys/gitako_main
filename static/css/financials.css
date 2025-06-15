@@ -1,0 +1,82 @@
+/* Financials App Styles */
+
+/* Budget Cards */
+.budget-summary-card {
+    transition: transform 0.2s;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.budget-summary-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* Budget Type Badges */
+.badge.bg-income {
+    background-color: var(--bs-success);
+}
+
+.badge.bg-expense {
+    background-color: var(--bs-danger);
+}
+
+/* Budget Item Table */
+.budget-item-table th {
+    font-weight: 600;
+    color: #555;
+}
+
+.budget-item-table .item-description {
+    max-width: 250px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Budget Form */
+.budget-form .form-outline {
+    margin-bottom: 1.5rem;
+}
+
+.budget-form .form-label {
+    font-weight: 500;
+}
+
+/* Variance Indicators */
+.variance-positive {
+    color: var(--bs-success);
+    font-weight: 500;
+}
+
+.variance-negative {
+    color: var(--bs-danger);
+    font-weight: 500;
+}
+
+.variance-neutral {
+    color: var(--bs-secondary);
+}
+
+/* Empty State */
+.empty-state {
+    padding: 3rem 1rem;
+    text-align: center;
+}
+
+.empty-state i {
+    font-size: 3rem;
+    color: #ccc;
+    margin-bottom: 1rem;
+}
+
+.empty-state h4 {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.empty-state p {
+    color: #777;
+    max-width: 400px;
+    margin: 0 auto 1.5rem;
+}

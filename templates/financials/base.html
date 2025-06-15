@@ -1,0 +1,23 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block title %}Farm Budgets{% endblock %}
+
+{% block sidebar %}
+<div class="list-group list-group-flush mx-3 mt-4">
+    <a href="{% url 'dashboard:index' %}" class="list-group-item list-group-item-action py-2 ripple">
+        <i class="fas fa-tachometer-alt fa-fw me-3"></i><span>Dashboard</span>
+    </a>
+    <a href="{% url 'farms:crop_dashboard' %}" class="list-group-item list-group-item-action py-2 ripple">
+        <i class="fas fa-seedling fa-fw me-3"></i><span>Crops</span>
+    </a>
+    <a href="{% url 'financials:budget_dashboard' %}" class="list-group-item list-group-item-action py-2 ripple {% if request.resolver_match.url_name == 'budget_dashboard' %}active{% endif %}">
+        <i class="fas fa-chart-pie fa-fw me-3"></i><span>Budget Dashboard</span>
+    </a>
+    <a href="{% url 'financials:budget_list' %}" class="list-group-item list-group-item-action py-2 ripple {% if request.resolver_match.url_name == 'budget_list' %}active{% endif %}">
+        <i class="fas fa-list fa-fw me-3"></i><span>Budgets</span>
+    </a>
+    <a href="{% url 'activities:activity_list' %}" class="list-group-item list-group-item-action py-2 ripple">
+        <i class="fas fa-tasks fa-fw me-3"></i><span>Activities</span>
+    </a>
+</div>
+{% endblock %}
