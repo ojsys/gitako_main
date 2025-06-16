@@ -3,7 +3,7 @@
 
 {% block title %}{{ budget.name }} - {{ block.super }}{% endblock %}
 
-{% block content %}
+{% block dashboard_content %}
 <div class="container-fluid py-4">
     <div class="row mb-4">
         <div class="col-12">
@@ -70,7 +70,7 @@
                 <div class="card-header bg-light">
                     <div class="d-flex justify-content-between align-items-center">
                         <h5 class="mb-0">Budget Items</h5>
-                        <a href="{% url 'financials:budget_item_create' budget.id %}" class="btn btn-sm btn-primary">
+                        <a href="{% url 'financials:budget_item_create' budget.id %}" class="btn btn-sm btn-success">
                             <i class="fas fa-plus me-1"></i> Add Item
                         </a>
                     </div>
@@ -133,7 +133,7 @@
                         <i class="fas fa-list-alt fa-4x mb-3 text-muted"></i>
                         <h4>No budget items found</h4>
                         <p class="text-muted">Add items to your budget to track planned income and expenses.</p>
-                        <a href="{% url 'financials:budget_item_create' budget.id %}" class="btn btn-primary mt-3">
+                        <a href="{% url 'financials:budget_item_create' budget.id %}" class="btn btn-success mt-3">
                             <i class="fas fa-plus me-2"></i>Add Budget Item
                         </a>
                     </div>

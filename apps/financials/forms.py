@@ -21,9 +21,12 @@ class BudgetForm(forms.ModelForm):
         if self.user:
             self.fields['farm'].queryset = Farm.objects.filter(owner=self.user)
         
-        # Add CSS classes for styling
+        # Add CSS classes and IDs for styling
         for field_name, field in self.fields.items():
-            field.widget.attrs.update({'class': 'form-control'})
+            field.widget.attrs.update({
+                'class': 'form-control',
+                'id': f'id_{field_name}'  # This will create id="id_farm" for the farm field
+            })
     
     class Meta:
         model = Budget
@@ -35,7 +38,7 @@ class BudgetForm(forms.ModelForm):
             'start_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'end_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'description': forms.Textarea(attrs={'rows': 3, 'class': 'form-control'}),
-            'title': forms.TextInput(attrs={'class': 'form-control'}),
+            'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder':'Budget Name'}),
             'total_planned_income': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'total_planned_expenses': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
         }
