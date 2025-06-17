@@ -351,10 +351,24 @@
                                         <td>{{ cycle.expected_harvest_date }}</td>
                                         <td>{{ cycle.expected_yield_kg|floatformat:1 }} kg</td>
                                         <td>
-                                            <span class="badge bg-success">Ready</span>
+                                            {% if cycle.status == 'active' %}
+                                                {% with today=cycle.expected_harvest_date|timeuntil %}
+                                                    {% if 'day' in today and today != '0\xa0days' %}
+                                                        <span class="badge bg-warning">Upcoming</span>
+                                                    {% else %}
+                                                        <span class="badge bg-success">Ready</span>
+                                                    {% endif %}
+                                                {% endwith %}
+                                            {% elif cycle.status == 'harvested' %}
+                                                <span class="badge bg-secondary">Harvested</span>
+                                            {% elif cycle.status == 'planned' %}
+                                                <span class="badge bg-info">Planned</span>
+                                            {% else %}
+                                                <span class="badge bg-danger">{{ cycle.status|title }}</span>
+                                            {% endif %}
                                         </td>
                                         <td>
-                                            <button class="btn btn-sm btn-outline-success">Details</button>
+                                            <a href="{% url 'farms:crop_dashboard' cycle.id %}" class="btn btn-sm btn-outline-success">Details</a>
                                         </td>
                                     </tr>
                                     {% endfor %}

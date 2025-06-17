@@ -1,0 +1,156 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load widget_tweaks %}
+
+{% block title %}{% if form.instance.pk %}Edit Field{% else %}Create New Field{% endif %} - Gitako Farm Management{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid px-4 py-4">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0 text-success">{% if form.instance.pk %}Edit Field: {{ form.instance.name }}{% else %}Create New Field{% endif %}</h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'dashboard:index' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'farms:field_list' %}">Fields</a></li>
+                    {% if form.instance.pk %}
+                    <li class="breadcrumb-item"><a href="{% url 'farms:field_detail' form.instance.pk %}">{{ form.instance.name }}</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Edit</li>
+                    {% else %}
+                    <li class="breadcrumb-item active" aria-current="page">Create New Field</li>
+                    {% endif %}
+                </ol>
+            </nav>
+        </div>
+        <div>
+            {% if form.instance.pk %}
+            <a href="{% url 'farms:field_detail' form.instance.pk %}" class="btn btn-outline-secondary">
+                <i class="material-icons small align-middle">arrow_back</i> Cancel
+            </a>
+            {% else %}
+            <a href="{% url 'farms:field_list' %}" class="btn btn-outline-secondary">
+                <i class="material-icons small align-middle">arrow_back</i> Back to Fields
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Field Form -->
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <form method="post" enctype="multipart/form-data" class="row g-3">
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                    <div class="col-12">
+                        <div class="alert alert-danger" role="alert">
+                            {{ form.non_field_errors }}
+                        </div>
+                    </div>
+                {% endif %}
+
+                <div class="col-md-6">
+                    <label for="{{ form.farm.id_for_label }}" class="form-label">Farm *</label>
+                    {% render_field form.farm class="form-select" %}
+                    {% if form.farm.errors %}
+                        <div class="invalid-feedback d-block">{{ form.farm.errors|first }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="col-md-6">
+                    <label for="{{ form.name.id_for_label }}" class="form-label">Field Name *</label>
+                    {% render_field form.name class="form-control" placeholder="e.g., North Plot, Section A" %}
+                    {% if form.name.errors %}
+                        <div class="invalid-feedback d-block">{{ form.name.errors|first }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="col-md-12">
+                    <label for="{{ form.description.id_for_label }}" class="form-label">Description</label>
+                    {% render_field form.description class="form-control" rows="3" placeholder="Enter a brief description of the field" %}
+                    {% if form.description.errors %}
+                        <div class="invalid-feedback d-block">{{ form.description.errors|first }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="col-md-6">
+                    <label for="{{ form.size.id_for_label }}" class="form-label">Size (acres) *</label>
+                    {% render_field form.size class="form-control" placeholder="e.g., 10.5" %}
+                    {% if form.size.errors %}
+                        <div class="invalid-feedback d-block">{{ form.size.errors|first }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="col-md-6">
+                    <label for="{{ form.crop_type.id_for_label }}" class="form-label">Primary Crop Type</label>
+                    {% render_field form.crop_type class="form-control" placeholder="e.g., Corn, Wheat, Vegetables" %}
+                    {% if form.crop_type.errors %}
+                        <div class="invalid-feedback d-block">{{ form.crop_type.errors|first }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="col-md-6">
+                    <label for="{{ form.livestock_type.id_for_label }}" class="form-label">Primary Livestock Type</label>
+                    {% render_field form.livestock_type class="form-control" placeholder="e.g., Cattle, Poultry, Sheep" %}
+                    {% if form.livestock_type.errors %}
+                        <div class="invalid-feedback d-block">{{ form.livestock_type.errors|first }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="col-md-6">
+                    <label for="{{ form.image.id_for_label }}" class="form-label">Field Image</label>
+                    {% render_field form.image class="form-control" %}
+                    {% if form.image.errors %}
+                        <div class="invalid-feedback d-block">{{ form.image.errors|first }}</div>
+                    {% endif %}
+                    {% if form.instance.image %}
+                        <div class="mt-2">
+                            <small>Current image: <a href="{{ form.instance.image.url }}" target="_blank">{{ form.instance.image.name }}</a></small>
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="col-12 mt-4">
+                    <button type="submit" class="btn btn-success">
+                        <i class="material-icons small align-middle">save</i> {% if form.instance.pk %}Save Changes{% else %}Create Field{% endif %}
+                    </button>
+                    {% if form.instance.pk %}
+                    <a href="{% url 'farms:field_detail' form.instance.pk %}" class="btn btn-outline-secondary ms-2">Cancel</a>
+                    <button type="button" class="btn btn-outline-danger ms-2" data-bs-toggle="modal" data-bs-target="#deleteFieldModal">
+                        <i class="material-icons small align-middle">delete</i> Delete Field
+                    </button>
+                    {% else %}
+                    <a href="{% url 'farms:field_list' %}" class="btn btn-outline-secondary ms-2">Cancel</a>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {% if form.instance.pk %}
+    <!-- Delete Confirmation Modal -->
+    <div class="modal fade" id="deleteFieldModal" tabindex="-1" aria-labelledby="deleteFieldModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteFieldModalLabel">Confirm Deletion</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Are you sure you want to delete the field "<strong>{{ form.instance.name }}</strong>"?
+                    This action will also delete all associated crop cycles and other related data. This cannot be undone.
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <form method="post" action="{% url 'farms:field_delete' form.instance.pk %}" style="display: inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger">Delete Field Permanently</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

@@ -1,0 +1,35 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block title %}Confirm Delete Crop Cycle{% endblock %}
+
+{% block dashboard_content %}
+<div class="page-header">
+    <h2>Confirm Delete Crop Cycle</h2>
+    <div class="breadcrumb">
+        <a href="{% url 'dashboard:dashboard' %}">Dashboard</a> / 
+        <a href="{% url 'farms:crop_list' %}">Crops</a> / 
+        <a href="{% url 'farms:crop_cycle_list' %}">Crop Cycles</a> / 
+        <a href="{% url 'farms:crop_cycle_detail' crop_cycle.pk %}">{{ crop_cycle.crop.name }} - {{ crop_cycle.field.name }}</a> / 
+        Confirm Delete
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-danger text-white">
+                Confirm Deletion
+            </div>
+            <div class="card-body">
+                <p>Are you sure you want to delete the crop cycle for <strong>{{ crop_cycle.crop.name }}</strong> in field <strong>{{ crop_cycle.field.name }}</strong> (Planted: {{ crop_cycle.planting_date|date:"M d, Y" }})?</p>
+                <p>This action cannot be undone.</p>
+                <form method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Yes, Delete</button>
+                    <a href="{% url 'farms:crop_cycle_detail' crop_cycle.pk %}" class="btn btn-secondary">Cancel</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

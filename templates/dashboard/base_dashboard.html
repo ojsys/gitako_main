@@ -135,6 +135,15 @@
                         {% endif %}
                     </a>
                 </div>
+
+                <div class="nav-item {% if active_page == 'fields' %}active{% endif %}">
+                    <a class="nav-link d-flex align-items-center py-3 text-white" href="{% url 'farms:field_list' %}">
+                        <i class="material-icons me-3">map</i> <span>Fields & Plots</span>
+                        {% if active_page == 'fields' %}
+                        <i class="material-icons ms-auto text-success">chevron_right</i>
+                        {% endif %}
+                    </a>
+                </div>
                 
                 <div class="nav-item {% if active_page == 'livestock' %}active{% endif %}">
                     <a class="nav-link d-flex align-items-center py-3 text-white" href="#">
@@ -146,15 +155,6 @@
                     </a>
                 </div>
                 
-                <div class="nav-item {% if active_page == 'fields' %}active{% endif %}">
-                    <a class="nav-link d-flex align-items-center py-3 text-white" href="#">
-                        <i class="material-icons me-3">landscape</i>
-                        <span>Fields & Plots</span>
-                        {% if active_page == 'fields' %}
-                        <i class="material-icons ms-auto text-success">chevron_right</i>
-                        {% endif %}
-                    </a>
-                </div>
                 
                 <div class="nav-item {% if active_page == 'tasks' %}active{% endif %}">
                     <a class="nav-link d-flex align-items-center py-3 text-white" href="#">

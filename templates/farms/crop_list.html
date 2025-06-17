@@ -1,29 +1,28 @@
-{% extends 'dashboard/base_dashboard.html' %}
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
 
-{% block title %}All Crops - Gitako Farm Management{% endblock %}
+{% block title %}Crops List{% endblock %}
 
 {% block dashboard_content %}
-<div class="container-fluid px-4 py-4">
-    <!-- Page Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h1 class="h3 mb-0 text-success">All Crops</h1>
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="{% url 'dashboard:index' %}">Dashboard</a></li>
-                    <li class="breadcrumb-item"><a href="{% url 'farms:crop_dashboard' %}">Crops</a></li>
-                    <li class="breadcrumb-item active" aria-current="page">All Crops</li>
-                </ol>
-            </nav>
-        </div>
-        <div>
-            <a href="{% url 'farms:crop_cycle_list' %}" class="btn btn-outline-success">
-                <i class="material-icons small align-middle">eco</i> Crop Cycles
-            </a>
+<div class="container-fluid px-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+                <h4 class="mb-sm-0 font-size-18">Manage Your Crops</h4>
+                <div class="page-title-right">
+                    <ol class="breadcrumb m-0">
+                        <li class="breadcrumb-item"><a href="{% url 'dashboard:index' %}">Dashboard</a></li>
+                        <li class="breadcrumb-item active">Crops</li>
+                    </ol>
+                    <a href="{% url 'farms:crop_create' %}" class="btn btn-primary waves-effect waves-light ms-2">
+                        <i class="bx bx-add-to-queue me-1"></i> Add New Crop
+                    </a>
+                </div>
+            </div>
         </div>
     </div>
-    
-    <!-- Crop List -->
+
+    <!-- Rest of the template -->
     <div class="row g-4">
         {% if crops %}
             {% for crop in crops %}

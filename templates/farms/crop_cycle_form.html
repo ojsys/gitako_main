@@ -1,0 +1,51 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block title %}{% if form.instance.pk %}Edit Crop Cycle{% else %}Create Crop Cycle{% endif %}{% endblock %}
+
+{% block dashboard_content %}
+<div class="page-header">
+    <h2>{% if form.instance.pk %}Edit Crop Cycle{% else %}Create Crop Cycle{% endif %}</h2>
+    <div class="breadcrumb">
+        <a href="{% url 'dashboard:index' %}">Dashboard</a> / 
+        <a href="{% url 'farms:crop_list' %}">Crops</a> / 
+        <a href="{% url 'farms:crop_cycle_list' %}">Crop Cycles</a> / 
+        {% if form.instance.pk %}Edit{% else %}Create{% endif %}
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                Crop Cycle Information
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    {{ form.as_p }}
+                    <button type="submit" class="btn btn-success">Save Crop Cycle</button>
+                    <a href="{% if form.instance.pk %}{% url 'farms:crop_cycle_detail' form.instance.pk %}{% else %}{% url 'farms:crop_cycle_list' %}{% endif %}" class="btn btn-secondary">Cancel</a>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                Helpful Tips
+            </div>
+            <div class="card-body">
+                <p>Ensure all dates are accurate for proper tracking.</p>
+                <p>Select the correct crop variety for detailed planning.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% comment %}
+Potentially add JavaScript for dynamic loading of crop varieties based on selected crop if not already handled by the form.
+Inspect the CropCycleForm in forms.py to see if it needs specific template adjustments.
+Consider adding a section to link or create related activities directly from this form.
+{% endcomment %}
+
+{% endblock %}
