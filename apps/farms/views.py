@@ -254,8 +254,8 @@ def crop_dashboard(request, crop_cycle_id=None):
         # Get active budgets (current date falls between start_date and end_date)
         active_budgets = Budget.objects.filter(
             user=request.user,
-            start_date__lte=now,
-            end_date__gte=now
+            # start_date__lte=now,
+            # end_date__gte=now
         )
         active_budgets_count = active_budgets.count()
         

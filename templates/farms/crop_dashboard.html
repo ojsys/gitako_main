@@ -1,10 +1,12 @@
 {% extends 'dashboard/base_dashboard.html' %}
 
 {% load financials_tags %}
+{% load humanize %}
 
 {% block title %}Crop Management - Gitako Farm Management{% endblock %}
 
 {% block extra_css %}
+
 <style>
   .health-indicator {
     width: 15px;
@@ -253,7 +255,7 @@
                             <div class="h3 mb-0">{{ expected_yield|default:"42" }} <span class="small text-muted">tons</span></div>
                         </div>
                         <div class="bg-primary bg-opacity-10 p-3 rounded">
-                            <i class="material-icons text-primary">trending_up</i>
+                            <i class="material-icons text-white">trending_up</i>
                         </div>
                     </div>
                 </div>
@@ -267,10 +269,10 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <div class="text-muted small">CROP VALUE</div>
-                            <div class="h3 mb-0">$5,280</div>
+                            <div class="h3 mb-0">₦5,280</div>
                         </div>
                         <div class="bg-success bg-opacity-10 p-3 rounded">
-                            <i class="material-icons text-success">attach_money</i>
+                            <i class="material-icons text-white">money</i>
                         </div>
                     </div>
                 </div>
@@ -287,7 +289,7 @@
                             <div class="h3 mb-0">68<span class="small text-muted">%</span></div>
                         </div>
                         <div class="bg-info bg-opacity-10 p-3 rounded">
-                            <i class="material-icons text-info">water_drop</i>
+                            <i class="material-icons text-white">water_drop</i>
                         </div>
                     </div>
                 </div>
@@ -304,7 +306,7 @@
                             <div class="h3 mb-0">82<span class="small text-muted">%</span></div>
                         </div>
                         <div class="bg-warning bg-opacity-10 p-3 rounded">
-                            <i class="material-icons text-warning">eco</i>
+                            <i class="material-icons text-white">eco</i>
                         </div>
                     </div>
                 </div>
@@ -460,7 +462,7 @@
                                     <div class="d-flex justify-content-between align-items-center mb-3">
                                         <div class="text-muted small">ACTIVE BUDGETS</div>
                                         <div class="bg-primary bg-opacity-10 p-2 rounded">
-                                            <i class="material-icons text-primary">account_balance_wallet</i>
+                                            <i class="material-icons text-white">account_balance_wallet</i>
                                         </div>
                                     </div>
                                     <div class="h3 mb-0">{{ active_budgets_count|default:"0" }}</div>
@@ -477,10 +479,10 @@
                                     <div class="d-flex justify-content-between align-items-center mb-3">
                                         <div class="text-muted small">PLANNED EXPENSES</div>
                                         <div class="bg-danger bg-opacity-10 p-2 rounded">
-                                            <i class="material-icons text-danger">trending_down</i>
+                                            <i class="material-icons text-white">trending_down</i>
                                         </div>
                                     </div>
-                                    <div class="h3 mb-0">${{ total_planned_expenses|default:"0"|floatformat:0 }}</div>
+                                    <div class="h3 mb-0">₦{{ total_planned_expenses|default:"0"|intcomma }}</div>
                                     <div class="progress mt-3" style="height: 6px;">
                                         <div class="progress-bar bg-danger" role="progressbar" style="width: 65%" aria-valuenow="65" aria-valuemin="0" aria-valuemax="100"></div>
                                     </div>
@@ -494,10 +496,10 @@
                                     <div class="d-flex justify-content-between align-items-center mb-3">
                                         <div class="text-muted small">PLANNED INCOME</div>
                                         <div class="bg-success bg-opacity-10 p-2 rounded">
-                                            <i class="material-icons text-success">trending_up</i>
+                                            <i class="material-icons text-white">trending_up</i>
                                         </div>
                                     </div>
-                                    <div class="h3 mb-0">${{ total_planned_income|default:"0"|floatformat:0 }}</div>
+                                    <div class="h3 mb-0">₦{{ total_planned_income|default:"0"|intcomma }}</div>
                                     <div class="progress mt-3" style="height: 6px;">
                                         <div class="progress-bar bg-success" role="progressbar" style="width: 80%" aria-valuenow="80" aria-valuemin="0" aria-valuemax="100"></div>
                                     </div>
@@ -525,13 +527,13 @@
                                     <tbody>
                                         {% for budget in recent_budgets|slice:":3" %}
                                         <tr>
-                                            <td>{{ budget.name }}</td>
+                                            <td>{{ budget.title }}</td>
                                             <td>{{ budget.farm.name }}</td>
                                             <td>{{ budget.start_date|date:"M d, Y" }} - {{ budget.end_date|date:"M d, Y" }}</td>
-                                            <td class="text-success">${{ budget.planned_income|floatformat:2 }}</td>
-                                            <td class="text-danger">${{ budget.planned_expenses|floatformat:2 }}</td>
-                                            <td class="{% if budget.planned_income > budget.planned_expenses %}text-success{% else %}text-danger{% endif %}">
-                                                ${{ budget.planned_income|subtract:budget.planned_expenses|floatformat:2 }}
+                                            <td class="text-success">₦{{ budget.total_planned_income|intcomma }}</td>
+                                            <td class="text-danger">₦{{ budget.total_planned_expenses|intcomma }}</td>
+                                            <td class="{% if budget.total_planned_income > budget.total_planned_expenses %}text-success{% else %}text-danger{% endif %}">
+                                                ₦{{ budget.total_planned_income|subtract:budget.total_planned_expenses|intcomma }}
                                             </td>
                                             <td>
                                                 <a href="{% url 'financials:budget_detail' budget.id %}" class="btn btn-sm btn-outline-success">View</a>
@@ -570,7 +572,7 @@
                         <li class="list-group-item px-0 py-3 border-bottom recommendation-item recommendation-high">
                             <div class="d-flex align-items-center">
                                 <div class="bg-danger bg-opacity-10 p-2 rounded me-3">
-                                    <i class="material-icons text-danger">pest_control</i>
+                                    <i class="material-icons text-white">pest_control</i>
                                 </div>
                                 <div>
                                     <h6 class="mb-1">Pest alert for Tomatoes</h6>
@@ -584,7 +586,7 @@
                         <li class="list-group-item px-0 py-3 border-bottom recommendation-item recommendation-medium">
                             <div class="d-flex align-items-center">
                                 <div class="bg-warning bg-opacity-10 p-2 rounded me-3">
-                                    <i class="material-icons text-warning">water_drop</i>
+                                    <i class="material-icons text-white">water_drop</i>
                                 </div>
                                 <div>
                                     <h6 class="mb-1">Increase irrigation for Maize</h6>
@@ -598,7 +600,7 @@
                         <li class="list-group-item px-0 py-3 border-bottom recommendation-item recommendation-medium">
                             <div class="d-flex align-items-center">
                                 <div class="bg-warning bg-opacity-10 p-2 rounded me-3">
-                                    <i class="material-icons text-warning">spa</i>
+                                    <i class="material-icons text-white">spa</i>
                                 </div>
                                 <div>
                                     <h6 class="mb-1">Apply nitrogen fertilizer</h6>
@@ -612,7 +614,7 @@
                         <li class="list-group-item px-0 py-3 recommendation-item recommendation-low">
                             <div class="d-flex align-items-center">
                                 <div class="bg-success bg-opacity-10 p-2 rounded me-3">
-                                    <i class="material-icons text-success">eco</i>
+                                    <i class="material-icons text-white">eco</i>
                                 </div>
                                 <div>
                                     <h6 class="mb-1">Optimal planting time</h6>

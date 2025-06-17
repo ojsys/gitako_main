@@ -149,10 +149,11 @@ class BudgetItem(models.Model):
     budget = models.ForeignKey(Budget, on_delete=models.CASCADE, related_name='items')
     
     class ItemType(models.TextChoices):
+        SELECT = '', 'Select Type'
         INCOME = 'income', 'Income'
         EXPENSE = 'expense', 'Expense'
     
-    item_type = models.CharField(max_length=10, choices=ItemType.choices)
+    item_type = models.CharField(max_length=10, choices=ItemType.choices, default=ItemType.SELECT)
     category = models.CharField(max_length=50)
     description = models.CharField(max_length=255)
     amount = models.DecimalField(max_digits=12, decimal_places=2)

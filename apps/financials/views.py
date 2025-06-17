@@ -100,6 +100,7 @@ def budget_detail(request, budget_id):
     # Get budget items
     income_items = budget.items.filter(item_type='income')
     expense_items = budget.items.filter(item_type='expense')
+    budget_items = budget.items.all().order_by('item_type', 'category')
     
     # Calculate actual transactions within budget period
     actual_income = Transaction.objects.filter(
@@ -130,6 +131,7 @@ def budget_detail(request, budget_id):
     
     context = {
         'budget': budget,
+        'budget_items': budget_items,
         'income_items': income_items,
         'expense_items': expense_items,
         'actual_income': actual_income,
@@ -145,17 +147,26 @@ def budget_detail(request, budget_id):
     
     return render(request, 'financials/budget_detail.html', context)
 
+
 @login_required
 def budget_create(request):
     """View to create a new budget"""
     if request.method == 'POST':
+        print("POST request received")  # Debug line
         form = BudgetForm(request.POST, user=request.user)
+        print(f"Form data: {request.POST}")  # Debug line
+        print(f"Form is valid: {form.is_valid()}")  # Debug line
+        
         if form.is_valid():
+            print("Form is valid, saving...")  # Debug line
             budget = form.save(commit=False)
             budget.user = request.user
             budget.save()
             messages.success(request, 'Budget created successfully!')
             return redirect('financials:budget_detail', budget_id=budget.id)
+        else:
+            print(f"Form errors: {form.errors}")  # Debug line
+            print(f"Non-field errors: {form.non_field_errors()}")  # Debug line
     else:
         form = BudgetForm(user=request.user)
     

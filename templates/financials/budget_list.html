@@ -41,8 +41,8 @@
                                     <td>{{ budget.name }}</td>
                                     <td>{{ budget.start_date }}</td>
                                     <td>{{ budget.end_date }}</td>
-                                    <td class="text-success">${{ budget.planned_income|floatformat:2 }}</td>
-                                    <td class="text-danger">${{ budget.planned_expenses|floatformat:2 }}</td>
+                                    <td class="text-success">₦{{ budget.planned_income|floatformat:2 }}</td>
+                                    <td class="text-danger">₦{{ budget.planned_expenses|floatformat:2 }}</td>
                                     <td>
                                         <a href="{% url 'financials:budget_detail' budget.id %}" class="btn btn-sm btn-info">
                                             <i class="fas fa-eye"></i>

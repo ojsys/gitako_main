@@ -1,5 +1,7 @@
 {% extends 'financials/base.html' %}
 {% load static %}
+{% load math_filters %}
+{% load humanize %}
 
 {% block title %}{{ budget.name }} - {{ block.super }}{% endblock %}
 
@@ -9,13 +11,13 @@
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <a href="{% url 'financials:budget_list' %}" class="btn btn-sm btn-outline-primary mb-2">
+                    <a href="{% url 'financials:budget_list' %}" class="btn btn-sm btn-outline-success mb-2">
                         <i class="fas fa-arrow-left me-1"></i> Back to Budgets
                     </a>
-                    <h2 class="mb-0">{{ budget.name }}</h2>
+                    <h2 class="mb-0 mt-5">{{ budget.title }}</h2>
                     <p class="text-muted">{{ budget.farm.name }} | {{ budget.start_date }} to {{ budget.end_date }}</p>
                 </div>
-                <div>
+                <div class="mt-5">
                     <a href="{% url 'financials:budget_update' budget.id %}" class="btn btn-warning">
                         <i class="fas fa-edit me-2"></i>Edit Budget
                     </a>
@@ -33,7 +35,7 @@
             <div class="card">
                 <div class="card-body text-center">
                     <h6 class="text-muted">Planned Income</h6>
-                    <h3 class="text-success">${{ budget.planned_income|floatformat:2 }}</h3>
+                    <h3 class="text-success">₦{{ budget.total_planned_income|intcomma }}</h3>
                 </div>
             </div>
         </div>
@@ -41,7 +43,7 @@
             <div class="card">
                 <div class="card-body text-center">
                     <h6 class="text-muted">Planned Expenses</h6>
-                    <h3 class="text-danger">${{ budget.planned_expenses|floatformat:2 }}</h3>
+                    <h3 class="text-danger">₦{{ budget.total_planned_expenses|intcomma }}</h3>
                 </div>
             </div>
         </div>
@@ -49,7 +51,7 @@
             <div class="card">
                 <div class="card-body text-center">
                     <h6 class="text-muted">Actual Income</h6>
-                    <h3 class="text-success">${{ actual_income|floatformat:2 }}</h3>
+                    <h3 class="text-success">₦{{ actual_income|default:"0.00"|intcomma }}</h3>
                 </div>
             </div>
         </div>
@@ -57,7 +59,7 @@
             <div class="card">
                 <div class="card-body text-center">
                     <h6 class="text-muted">Actual Expenses</h6>
-                    <h3 class="text-danger">${{ actual_expenses|floatformat:2 }}</h3>
+                    <h3 class="text-danger">₦{{ actual_expenses|default:"0.00"|intcomma }}</h3>
                 </div>
             </div>
         </div>
@@ -93,7 +95,7 @@
                             <tbody>
                                 {% for item in budget_items %}
                                 <tr>
-                                    <td>{{ item.get_category_display }}</td>
+                                    <td>{{ item.category }}</td>
                                     <td>{{ item.description }}</td>
                                     <td>
                                         {% if item.type == 'income' %}
@@ -102,16 +104,16 @@
                                         <span class="badge bg-danger">Expense</span>
                                         {% endif %}
                                     </td>
-                                    <td>${{ item.planned_amount|floatformat:2 }}</td>
-                                    <td>${{ item.actual_amount|default:"0.00"|floatformat:2 }}</td>
+                                    <td>₦{{ item.planned_amount|floatformat:2 }}</td>
+                                    <td>₦{{ item.actual_amount|default:"0.00"|floatformat:2 }}</td>
                                     <td>
                                         {% with variance=item.variance %}
                                         {% if variance > 0 %}
-                                        <span class="text-success">+${{ variance|floatformat:2 }}</span>
+                                        <span class="text-success">+₦{{ variance|floatformat:2 }}</span>
                                         {% elif variance < 0 %}
-                                        <span class="text-danger">-${{ variance|abs|floatformat:2 }}</span>
+                                        <span class="text-danger">-₦{{ variance|abs_value|floatformat:2 }}</span>
                                         {% else %}
-                                        <span class="text-muted">$0.00</span>
+                                        <span class="text-muted">₦0.00</span>
                                         {% endif %}
                                         {% endwith %}
                                     </td>

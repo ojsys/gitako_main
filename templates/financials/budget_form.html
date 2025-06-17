@@ -26,11 +26,10 @@
                     <form method="post" novalidate>
                         {% csrf_token %}
                         
+                        <!-- Display form errors -->
                         {% if form.non_field_errors %}
                         <div class="alert alert-danger">
-                            {% for error in form.non_field_errors %}
-                            {{ error }}
-                            {% endfor %}
+                            {{ form.non_field_errors }}
                         </div>
                         {% endif %}
                         
@@ -48,8 +47,8 @@
                                 <div class="form-outline">
                                     {{ form.title }}
                                     <label class="form-label" for="id_name">Budget Name</label>
-                                    {% if form.name.errors %}
-                                    <div class="text-danger small mt-1">{{ form.name.errors }}</div>
+                                    {% if form.title.errors %}
+                                    <div class="text-danger small mt-1">{{ form.title.errors }}</div>
                                     {% endif %}
                                 </div>
                             </div>
@@ -78,10 +77,36 @@
                         
                         <div class="form-outline mb-3">
                             {{ form.description }}
-                            <label class="form-label" for="id_notes">Notes</label>
-                            {% if form.notes.errors %}
-                            <div class="text-danger small mt-1">{{ form.notes.errors }}</div>
+                            <label class="form-label" for="id_description">Description</label>
+                            {% if form.description.errors %}
+                            <div class="text-danger small mt-1">{{ form.description.errors }}</div>
                             {% endif %}
+                        </div>
+
+                        <div class="form-group mb-3">
+                            {{ form.total_planned_income }}
+                            <label for="{{ form.total_planned_income.id_for_label }}">{{ form.total_planned_income.label }}</label>
+                            {% if form.total_planned_income.errors %}
+                            <div class="text-danger small mt-1">{{ form.total_planned_income.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            {{ form.total_planned_expenses }}
+                            <label for="{{ form.total_planned_expenses.id_for_label }}">{{ form.total_planned_expenses.label }}</label>
+                            {% if form.total_planned_expenses.errors %}
+                            <div class="text-danger small mt-1">{{ form.total_planned_expenses.errors }}</div>
+                            {% endif %}
+                            
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            {{ form.status }}
+                            <label for="{{ form.status.id_for_label }}">{{ form.status.label }}</label>
+                            {% if form.status.errors %}
+                            <div class="text-danger small mt-1">{{ form.status.errors }}</div>
+                            {% endif %}
+                            
                         </div>
                         
                         <div class="d-flex justify-content-end mt-4">

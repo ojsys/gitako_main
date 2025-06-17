@@ -1,108 +1,260 @@
 {% extends 'financials/base.html' %}
 {% load static %}
-{% load form_filters %}
+{% load humanize %}
 
 {% block title %}{% if form.instance.id %}Edit{% else %}Add{% endif %} Budget Item - {{ block.super }}{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/financials.css' %}">
+<style>
+    .form-section {
+        background: #f8f9fa;
+        padding: 1.5rem;
+        border-radius: 8px;
+        margin-bottom: 1.5rem;
+    }
+    .form-section h5 {
+        color: #495057;
+        margin-bottom: 1rem;
+        border-bottom: 2px solid #28a745;
+        padding-bottom: 0.5rem;
+    }
+    .optional-field {
+        background: #fff;
+        border-left: 4px solid #17a2b8;
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+    .required-field {
+        background: #fff;
+        border-left: 4px solid #dc3545;
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+    .calculation-helper {
+        background: #e9ecef;
+        padding: 1rem;
+        border-radius: 5px;
+        margin-top: 1rem;
+    }
+</style>
+{% endblock %}
+
 {% block dashboard_content %}
-<div class="container-fluid py-4">
-    <div class="row mb-4">
+<div class="container-fluid">
+    <div class="row">
         <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
                 <div>
-                    <a href="{% url 'financials:budget_detail' budget.id %}" class="btn btn-sm btn-outline-success mb-2">
-                        <i class="fas fa-arrow-left me-1"></i> Back to Budget
-                    </a>
-                    <h2 class="mb-0">{% if form.instance.id %}Edit{% else %}Add{% endif %} Budget Item</h2>
-                    <p class="text-muted">{{ budget.name }} | {{ budget.farm.name }}</p>
+                    <h2>{{ title }}</h2>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="{% url 'financials:budget_dashboard' %}">Budget Dashboard</a></li>
+                            <li class="breadcrumb-item"><a href="{% url 'financials:budget_list' %}">Budgets</a></li>
+                            {% if budget %}
+                                <li class="breadcrumb-item"><a href="{% url 'financials:budget_detail' budget.id %}">{{ budget.title }}</a></li>
+                            {% endif %}
+                            <li class="breadcrumb-item active">{{ title }}</li>
+                        </ol>
+                    </nav>
+                </div>
+                <div>
+                    {% if budget %}
+                        <a href="{% url 'financials:budget_detail' budget.id %}" class="btn btn-success">
+                            <i class="fas fa-arrow-left"></i> Back to Budget
+                        </a>
+                    {% endif %}
                 </div>
             </div>
-        </div>
-    </div>
 
-    <div class="row">
-        <div class="col-md-8 mx-auto">
-            <div class="card">
-                <div class="card-body">
-                    <form method="post" novalidate>
-                        {% csrf_token %}
-                        
-                        {% if form.non_field_errors %}
-                        <div class="alert alert-danger">
-                            {% for error in form.non_field_errors %}
-                            {{ error }}
-                            {% endfor %}
+            <!-- Form -->
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <div class="card shadow">
+                        <div class="card-header bg-success text-white">
+                            <h4 class="card-title mb-0">
+                                <i class="fas fa-plus-circle"></i> Budget Item Details
+                            </h4>
                         </div>
-                        {% endif %}
-                        
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <div class="form-outline">
-                                    {{ form.type|add_class:"form-control"|attr:"id:id_type" }}
-                                    <label class="form-label" for="id_type">Type</label>
-                                    {% if form.type.errors %}
-                                    <div class="text-danger small mt-1">{{ form.type.errors }}</div>
-                                    {% endif %}
+                        <div class="card-body">
+                            <form method="post" id="budgetItemForm">
+                                {% csrf_token %}
+                                
+                                <!-- Display non-field errors -->
+                                {% if form.non_field_errors %}
+                                    <div class="alert alert-danger">
+                                        {{ form.non_field_errors }}
+                                    </div>
+                                {% endif %}
+
+                                <!-- Required Fields Section -->
+                                <div class="form-section">
+                                    <h5><i class="fas fa-asterisk text-danger"></i> Required Information</h5>
+                                    
+                                    <!-- Item Type -->
+                                    <div class="required-field">
+                                        <div class="form-group">
+                                            <label class="form-label fw-bold" for="id_item_type">
+                                                {{ form.item_type.label }} <span class="text-danger">*</span>
+                                            </label>
+                                            {{ form.item_type }}
+                                            {% if form.item_type.help_text %}
+                                                <small class="form-text text-muted">{{ form.item_type.help_text }}</small>
+                                            {% endif %}
+                                            {% if form.item_type.errors %}
+                                                <div class="text-danger small mt-1">{{ form.item_type.errors }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+
+                                    <!-- Category -->
+                                    <div class="required-field">
+                                        <div class="form-group">
+                                            <label class="form-label fw-bold" for="id_category">
+                                                {{ form.category.label }} <span class="text-danger">*</span>
+                                            </label>
+                                            {{ form.category }}
+                                            {% if form.category.help_text %}
+                                                <small class="form-text text-muted">{{ form.category.help_text }}</small>
+                                            {% endif %}
+                                            {% if form.category.errors %}
+                                                <div class="text-danger small mt-1">{{ form.category.errors }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+
+                                    <!-- Description -->
+                                    <div class="required-field">
+                                        <div class="form-group">
+                                            <label class="form-label fw-bold" for="id_description">
+                                                {{ form.description.label }} <span class="text-danger">*</span>
+                                            </label>
+                                            {{ form.description }}
+                                            {% if form.description.help_text %}
+                                                <small class="form-text text-muted">{{ form.description.help_text }}</small>
+                                            {% endif %}
+                                            {% if form.description.errors %}
+                                                <div class="text-danger small mt-1">{{ form.description.errors }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+
+                                    <!-- Amount -->
+                                    <div class="required-field">
+                                        <div class="form-group">
+                                            <label class="form-label fw-bold" for="id_amount">
+                                                {{ form.amount.label }} <span class="text-danger">*</span>
+                                            </label>
+                                            {{ form.amount }}
+                                            {% if form.amount.help_text %}
+                                                <small class="form-text text-muted">{{ form.amount.help_text }}</small>
+                                            {% endif %}
+                                            {% if form.amount.errors %}
+                                                <div class="text-danger small mt-1">{{ form.amount.errors }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-outline">
-                                    {{ form.category|add_class:"form-control"|attr:"id:id_category" }}
-                                    <label class="form-label" for="id_category">Category</label>
-                                    {% if form.category.errors %}
-                                    <div class="text-danger small mt-1">{{ form.category.errors }}</div>
-                                    {% endif %}
+
+                                <!-- Optional Fields Section -->
+                                <div class="form-section">
+                                    <h5><i class="fas fa-info-circle text-info"></i> Optional Details</h5>
+                                    <p class="text-muted mb-3">
+                                        Fill these fields if you want to track quantity and unit pricing details.
+                                    </p>
+
+                                    <div class="row">
+                                        <!-- Quantity -->
+                                        <div class="col-md-4">
+                                            <div class="optional-field">
+                                                <div class="form-group">
+                                                    <label class="form-label" for="id_quantity">
+                                                        {{ form.quantity.label }}
+                                                    </label>
+                                                    {{ form.quantity }}
+                                                    {% if form.quantity.help_text %}
+                                                        <small class="form-text text-muted">{{ form.quantity.help_text }}</small>
+                                                    {% endif %}
+                                                    {% if form.quantity.errors %}
+                                                        <div class="text-danger small mt-1">{{ form.quantity.errors }}</div>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Unit -->
+                                        <div class="col-md-4">
+                                            <div class="optional-field">
+                                                <div class="form-group">
+                                                    <label class="form-label" for="id_unit">
+                                                        {{ form.unit.label }}
+                                                    </label>
+                                                    {{ form.unit }}
+                                                    {% if form.unit.help_text %}
+                                                        <small class="form-text text-muted">{{ form.unit.help_text }}</small>
+                                                    {% endif %}
+                                                    {% if form.unit.errors %}
+                                                        <div class="text-danger small mt-1">{{ form.unit.errors }}</div>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Price per Unit -->
+                                        <div class="col-md-4">
+                                            <div class="optional-field">
+                                                <div class="form-group">
+                                                    <label class="form-label" for="id_price_per_unit">
+                                                        {{ form.price_per_unit.label }}
+                                                    </label>
+                                                    {{ form.price_per_unit }}
+                                                    {% if form.price_per_unit.help_text %}
+                                                        <small class="form-text text-muted">{{ form.price_per_unit.help_text }}</small>
+                                                    {% endif %}
+                                                    {% if form.price_per_unit.errors %}
+                                                        <div class="text-danger small mt-1">{{ form.price_per_unit.errors }}</div>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Calculation Helper -->
+                                    <div class="calculation-helper" id="calculationHelper" style="display: none;">
+                                        <h6><i class="fas fa-calculator"></i> Calculation Helper</h6>
+                                        <p class="mb-2">
+                                            <strong>Quantity:</strong> <span id="calcQuantity">-</span> 
+                                            <strong>Unit:</strong> <span id="calcUnit">-</span>
+                                            <strong>Price per Unit:</strong> ₦<span id="calcPricePerUnit">-</span>
+                                        </p>
+                                        <p class="mb-0">
+                                            <strong>Calculated Total:</strong> ₦<span id="calculatedAmount">0.00</span>
+                                        </p>
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
-                        
-                        <div class="form-outline mb-3">
-                            {{ form.description|add_class:"form-control"|attr:"id:id_description" }}
-                            <label class="form-label" for="id_description">Description</label>
-                            {% if form.description.errors %}
-                            <div class="text-danger small mt-1">{{ form.description.errors }}</div>
-                            {% endif %}
-                        </div>
-                        
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <div class="form-outline">
-                                    {{ form.planned_amount|add_class:"form-control"|attr:"id:id_planned_amount" }}
-                                    <label class="form-label" for="id_planned_amount">Planned Amount ($)</label>
-                                    {% if form.planned_amount.errors %}
-                                    <div class="text-danger small mt-1">{{ form.planned_amount.errors }}</div>
-                                    {% endif %}
+
+                                <!-- Form Actions -->
+                                <div class="form-actions">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            {% if budget %}
+                                                <a href="{% url 'financials:budget_detail' budget.id %}" class="btn btn-secondary">
+                                                    <i class="fas fa-times"></i> Cancel
+                                                </a>
+                                            {% endif %}
+                                        </div>
+                                        <div>
+                                            <button type="submit" class="btn btn-success btn-lg">
+                                                <i class="fas fa-save"></i> 
+                                                {% if form.instance.pk %}Update{% else %}Create{% endif %} Budget Item
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-outline">
-                                    {{ form.actual_amount|add_class:"form-control"|attr:"id:id_actual_amount" }}
-                                    <label class="form-label" for="id_actual_amount">Actual Amount ($)</label>
-                                    <div class="form-text small">Leave blank if not yet realized</div>
-                                    {% if form.actual_amount.errors %}
-                                    <div class="text-danger small mt-1">{{ form.actual_amount.errors }}</div>
-                                    {% endif %}
-                                </div>
-                            </div>
+                            </form>
                         </div>
-                        
-                        <div class="form-outline mb-3">
-                            {{ form.notes|add_class:"form-control"|attr:"id:id_notes" }}
-                            <label class="form-label" for="id_notes">Notes</label>
-                            {% if form.notes.errors %}
-                            <div class="text-danger small mt-1">{{ form.notes.errors }}</div>
-                            {% endif %}
-                        </div>
-                        
-                        <div class="d-flex justify-content-end mt-4">
-                            <a href="{% url 'financials:budget_detail' budget.id %}" class="btn btn-outline-success me-2">
-                                Cancel
-                            </a>
-                            <button type="submit" class="btn btn-success">
-                                <i class="fas fa-save me-2"></i>Save Item
-                            </button>
-                        </div>
-                    </form>
+                    </div>
                 </div>
             </div>
         </div>
@@ -112,48 +264,67 @@
 
 {% block extra_js %}
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Show/hide category options based on type selection
-        const typeSelect = document.getElementById('id_type');
-        const categorySelect = document.getElementById('id_category');
+document.addEventListener('DOMContentLoaded', function() {
+    const quantityField = document.getElementById('id_quantity');
+    const unitField = document.getElementById('id_unit');
+    const pricePerUnitField = document.getElementById('id_price_per_unit');
+    const amountField = document.getElementById('id_amount');
+    const calculationHelper = document.getElementById('calculationHelper');
+    
+    // Elements for displaying calculation
+    const calcQuantity = document.getElementById('calcQuantity');
+    const calcUnit = document.getElementById('calcUnit');
+    const calcPricePerUnit = document.getElementById('calcPricePerUnit');
+    const calculatedAmount = document.getElementById('calculatedAmount');
+    
+    function updateCalculation() {
+        const quantity = parseFloat(quantityField.value) || 0;
+        const pricePerUnit = parseFloat(pricePerUnitField.value) || 0;
+        const unit = unitField.value || '-';
         
-        function updateCategoryOptions() {
-            const selectedType = typeSelect.value;
+        // Show calculation helper if quantity and price are provided
+        if (quantity > 0 && pricePerUnit > 0) {
+            calculationHelper.style.display = 'block';
             
-            // Hide all options first
-            Array.from(categorySelect.options).forEach(option => {
-                if (option.value === '') return; // Skip empty option
-                
-                const optionType = option.getAttribute('data-type');
-                if (!optionType) return;
-                
-                option.style.display = (optionType === selectedType) ? '' : 'none';
-            });
+            const total = quantity * pricePerUnit;
             
-            // Reset selection if current selection is now hidden
-            const currentOption = categorySelect.options[categorySelect.selectedIndex];
-            if (currentOption.value !== '' && currentOption.style.display === 'none') {
-                categorySelect.value = '';
+            calcQuantity.textContent = quantity;
+            calcUnit.textContent = unit;
+            calcPricePerUnit.textContent = pricePerUnit.toFixed(2);
+            calculatedAmount.textContent = total.toFixed(2);
+            
+            // Auto-fill amount field if it's empty
+            if (!amountField.value) {
+                amountField.value = total.toFixed(2);
             }
+        } else {
+            calculationHelper.style.display = 'none';
         }
-        
-        // Add data-type attribute to category options
-        Array.from(categorySelect.options).forEach(option => {
-            if (option.value === '') return; // Skip empty option
-            
-            // Income categories
-            if (['crop_sales', 'livestock_sales', 'subsidies', 'other_income'].includes(option.value)) {
-                option.setAttribute('data-type', 'income');
-            }
-            // Expense categories
-            else {
-                option.setAttribute('data-type', 'expense');
-            }
-        });
-        
-        // Initial update and event listener
-        updateCategoryOptions();
-        typeSelect.addEventListener('change', updateCategoryOptions);
-    });
+    }
+    
+    // Add event listeners
+    quantityField.addEventListener('input', updateCalculation);
+    pricePerUnitField.addEventListener('input', updateCalculation);
+    unitField.addEventListener('input', updateCalculation);
+    
+    // Initial calculation on page load
+    updateCalculation();
+    
+    // Item type color coding
+    const itemTypeField = document.getElementById('id_item_type');
+    function updateItemTypeColor() {
+        const selectedValue = itemTypeField.value;
+        if (selectedValue === 'income') {
+            itemTypeField.style.borderLeft = '4px solid #28a745';
+        } else if (selectedValue === 'expense') {
+            itemTypeField.style.borderLeft = '4px solid #dc3545';
+        } else {
+            itemTypeField.style.borderLeft = '';
+        }
+    }
+    
+    itemTypeField.addEventListener('change', updateItemTypeColor);
+    updateItemTypeColor(); // Initial call
+});
 </script>
 {% endblock %}

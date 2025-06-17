@@ -16,6 +16,9 @@ class BudgetForm(forms.ModelForm):
         # Make select fields required
         self.fields['farm'].required = True
         self.fields['status'].required = True
+        self.fields['total_planned_income'].required = False
+        self.fields['total_planned_expenses'].required = False
+        self.fields['status'].required = False
         
         # Filter farms by user
         if self.user:
@@ -38,7 +41,7 @@ class BudgetForm(forms.ModelForm):
             'start_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'end_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'description': forms.Textarea(attrs={'rows': 3, 'class': 'form-control'}),
-            'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder':'Budget Name'}),
+            'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder':'Enter Budget Name'}),
             'total_planned_income': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'total_planned_expenses': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
         }
@@ -53,6 +56,11 @@ class BudgetForm(forms.ModelForm):
         
         return cleaned_data
 
+# forms.py
+
+from django import forms
+from .models import BudgetItem
+
 class BudgetItemForm(forms.ModelForm):
     """Form for creating and editing budget items"""
     
@@ -62,12 +70,48 @@ class BudgetItemForm(forms.ModelForm):
         # Add empty choice to select fields
         self.fields['item_type'].empty_label = "Select Type"
         
-        # Make select fields required
+        # Make required fields explicit
         self.fields['item_type'].required = True
+        self.fields['category'].required = True
+        self.fields['description'].required = True
+        self.fields['amount'].required = True
         
-        # Add CSS classes for styling
+        # Optional fields
+        self.fields['quantity'].required = False
+        self.fields['unit'].required = False
+        self.fields['price_per_unit'].required = False
+        
+        # Add CSS classes and IDs for styling
         for field_name, field in self.fields.items():
-            field.widget.attrs.update({'class': 'form-control'})
+            css_class = 'form-control'
+            field.widget.attrs.update({
+                'class': css_class,
+                'id': f'id_{field_name}'
+            })
+        
+        # Add placeholders for better UX
+        self.fields['category'].widget.attrs['placeholder'] = 'e.g., Seeds, Fertilizer, Labor'
+        self.fields['description'].widget.attrs['placeholder'] = 'Brief description of the item'
+        self.fields['amount'].widget.attrs['placeholder'] = '0.00'
+        self.fields['quantity'].widget.attrs['placeholder'] = 'Optional quantity'
+        self.fields['unit'].widget.attrs['placeholder'] = 'e.g., kg, bags, hours'
+        self.fields['price_per_unit'].widget.attrs['placeholder'] = 'Price per unit'
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        quantity = cleaned_data.get('quantity')
+        price_per_unit = cleaned_data.get('price_per_unit')
+        amount = cleaned_data.get('amount')
+        
+        
+        # If quantity and price_per_unit are provided, validate amount calculation
+        if quantity is not None and price_per_unit is not None and amount:
+            calculated_amount = quantity * price_per_unit
+            if abs(float(amount) - float(calculated_amount)) > 0.01:  # Allow small rounding differences
+                self.add_error('amount', 
+                    f'Amount should equal quantity × price per unit (₦{calculated_amount:.2f})')
+        
+        return cleaned_data
     
     class Meta:
         model = BudgetItem
@@ -76,10 +120,43 @@ class BudgetItemForm(forms.ModelForm):
             'quantity', 'unit', 'price_per_unit'
         ]
         widgets = {
-            'description': forms.TextInput(attrs={'class': 'form-control'}),
+            'item_type': forms.Select(attrs={'class': 'form-control'}),
             'category': forms.TextInput(attrs={'class': 'form-control'}),
-            'amount': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
-            'quantity': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'description': forms.TextInput(attrs={'class': 'form-control'}),
+            'amount': forms.NumberInput(attrs={
+                'class': 'form-control', 
+                'step': '0.01',
+                'min': '0'
+            }),
+            'quantity': forms.NumberInput(attrs={
+                'class': 'form-control', 
+                'step': '0.01',
+                'min': '0'
+            }),
             'unit': forms.TextInput(attrs={'class': 'form-control'}),
-            'price_per_unit': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'price_per_unit': forms.NumberInput(attrs={
+                'class': 'form-control', 
+                'step': '0.01',
+                'min': '0'
+            }),
+        }
+        
+        labels = {
+            'item_type': 'Type',
+            'category': 'Category',
+            'description': 'Description',
+            'amount': 'Total Amount (₦)',
+            'quantity': 'Quantity',
+            'unit': 'Unit',
+            'price_per_unit': 'Price per Unit (₦)',
+        }
+        
+        help_texts = {
+            'item_type': 'Select whether this is an income or expense item',
+            'category': 'Category of the budget item (e.g., Seeds, Labor, Sales)',
+            'description': 'Brief description of what this item is for',
+            'amount': 'Total amount for this budget item',
+            'quantity': 'Optional: How many units (leave blank if not applicable)',
+            'unit': 'Optional: Unit of measurement (e.g., kg, bags, hours)',
+            'price_per_unit': 'Optional: Price per individual unit',
         }
