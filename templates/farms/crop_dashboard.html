@@ -82,13 +82,24 @@
     <!-- Page Header with Farm Health Overview -->
     <div class="row mb-4">
         <div class="col-md-8">
-            <h1 class="h3 mb-0 text-success">Crop Management</h1>
+            {% if crop_cycle %}
+            <h1 class="h3 mb-0 text-success">{{ crop_cycle.crop.name }} - {{ crop_cycle.field.name }} Dashboard</h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'dashboard:index' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'farms:crop_list' %}">Crops</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">{{ crop_cycle.crop.name }} - {{ crop_cycle.field.name }}</li>
+                </ol>
+            </nav>
+            {% else %}
+            <h1 class="h3 mb-0 text-success">Crop Management Dashboard</h1>
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item"><a href="{% url 'dashboard:index' %}">Dashboard</a></li>
                     <li class="breadcrumb-item active" aria-current="page">Crops</li>
                 </ol>
             </nav>
+            {% endif %}
         </div>
         <div class="col-md-4 text-end">
             <a href="{% url 'farms:crop_list' %}" class="btn btn-outline-success me-2">
@@ -100,6 +111,8 @@
         </div>
     </div>
     
+    
+
     <!-- Farm Health Overview -->
     <div class="row g-4 mb-4">
         <div class="col-md-6">
@@ -649,7 +662,7 @@
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
                     <h5 class="text-success mb-0">Recent Activities</h5>
-                    {% if crop_cycle and crop_cycle.id %}
+                    {% if crop_cycle %}
                     <a href="{% url 'activities:activity_create_for_crop' crop_cycle.id %}" class="btn btn-sm btn-success">
                         <i class="material-icons small align-middle">add</i> Add Activity
                     </a>

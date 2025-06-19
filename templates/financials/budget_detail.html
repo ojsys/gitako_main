@@ -51,7 +51,7 @@
             <div class="card">
                 <div class="card-body text-center">
                     <h6 class="text-muted">Actual Income</h6>
-                    <h3 class="text-success">₦{{ actual_income|default:"0.00"|intcomma }}</h3>
+                    <h3 class="text-success">₦{{ total_actual_income|default:"0.00"|intcomma }}</h3>
                 </div>
             </div>
         </div>
@@ -59,7 +59,7 @@
             <div class="card">
                 <div class="card-body text-center">
                     <h6 class="text-muted">Actual Expenses</h6>
-                    <h3 class="text-danger">₦{{ actual_expenses|default:"0.00"|intcomma }}</h3>
+                    <h3 class="text-danger">₦{{ total_actual_expenses|default:"0.00"|intcomma }}</h3>
                 </div>
             </div>
         </div>
@@ -104,19 +104,11 @@
                                         <span class="badge bg-danger">Expense</span>
                                         {% endif %}
                                     </td>
-                                    <td>₦{{ item.planned_amount|floatformat:2 }}</td>
-                                    <td>₦{{ item.actual_amount|default:"0.00"|floatformat:2 }}</td>
-                                    <td>
-                                        {% with variance=item.variance %}
-                                        {% if variance > 0 %}
-                                        <span class="text-success">+₦{{ variance|floatformat:2 }}</span>
-                                        {% elif variance < 0 %}
-                                        <span class="text-danger">-₦{{ variance|abs_value|floatformat:2 }}</span>
-                                        {% else %}
-                                        <span class="text-muted">₦0.00</span>
-                                        {% endif %}
-                                        {% endwith %}
-                                    </td>
+                                    <td>₦{{ item.amount|floatformat:2|intcomma }}</td>
+                                    <td>₦{{ item.actual_amount|default:"0.00"|floatformat:2|intcomma }}</td>
+                                    <td> 
+                                        ₦{{ item.variance|default:"0.00"|floatformat:2|intcomma }}</td>
+                                     </td>
                                     <td>
                                         <a href="{% url 'financials:budget_item_update' item.id %}" class="btn btn-sm btn-warning">
                                             <i class="fas fa-edit"></i>

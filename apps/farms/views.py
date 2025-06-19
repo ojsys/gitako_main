@@ -209,7 +209,7 @@ def crop_dashboard(request, crop_cycle_id=None):
                 })
         
         # Get recent activities for this crop cycle
-        recent_activities = Activity.objects.filter(crop_cycle=crop_cycle).order_by('-actual_date', '-planned_date')[:5]
+        recent_activities = Activity.objects.filter(crop_cycle=crop_cycle).order_by('-planned_date')[:5]
         
         # Get budget data for the dashboard
         # Get active budgets (current date falls between start_date and end_date)
@@ -479,9 +479,11 @@ def crop_cycle_create(request):
     if request.method == 'POST':
         form = CropCycleForm(request.POST, user=request.user)
         if form.is_valid():
-            crop_cycle = form.save()
-            messages.success(request, f'Crop cycle for {crop_cycle.crop.name} has been created successfully.')
-            return redirect('farms:crop_cycle_detail', cycle_id=crop_cycle.id)
+            crop_cycle = form.save(commit=False)
+            crop_cycle.farm = request.user.profile.farm  # Assuming farm is linked to user profile
+            crop_cycle.save()
+            messages.success(request, 'Crop cycle created successfully.')
+            return redirect('farms:crop_cycle_detail', pk=crop_cycle.id)  # Corrected line
     else:
         form = CropCycleForm(user=request.user)
         

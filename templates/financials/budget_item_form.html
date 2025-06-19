@@ -155,6 +155,38 @@
                                             {% endif %}
                                         </div>
                                     </div>
+
+                                    <!-- Actual Amount -->
+                                    <div class="required-field">
+                                        <div class="form-group">
+                                            <label class="form-label fw-bold" for="id_amount">
+                                                {{ form.actual_amount.label }} <span class="text-danger">*</span>
+                                            </label>
+                                            {{ form.actual_amount }}
+                                            {% if form.actual_amount.help_text %}
+                                                <small class="form-text text-muted">{{ form.actual_amount.help_text }}</small>
+                                            {% endif %}
+                                            {% if form.actual_amount.errors %}
+                                                <div class="text-danger small mt-1">{{ form.actual_amount.errors }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+
+                                    <!-- Vairance -->
+                                    <div class="required-field">
+                                        <div class="form-group">
+                                            <label class="form-label fw-bold" for="id_amount">
+                                                {{ form.variance.label }} <span class="text-danger">*</span>
+                                            </label>
+                                            {{ form.variance }}
+                                            {% if form.variance.help_text %}
+                                                <small class="form-text text-muted">{{ form.variance.help_text }}</small>
+                                            {% endif %}
+                                            {% if form.variance.errors %}
+                                                <div class="text-danger small mt-1">{{ form.variance.errors }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <!-- Optional Fields Section -->
@@ -260,9 +292,33 @@
         </div>
     </div>
 </div>
+
 {% endblock %}
 
 {% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const amountInput = document.getElementById('id_amount');
+        const actualAmountInput = document.getElementById('id_actual_amount');
+        const varianceInput = document.getElementById('id_variance');
+
+        function calculateVariance() {
+            const amount = parseFloat(amountInput.value) || 0;
+            const actualAmount = parseFloat(actualAmountInput.value) || 0;
+            const variance = amount - actualAmount;
+            varianceInput.value = variance.toFixed(2);
+        }
+
+        if (amountInput && actualAmountInput && varianceInput) {
+            amountInput.addEventListener('input', calculateVariance);
+            actualAmountInput.addEventListener('input', calculateVariance);
+            
+            // Initial calculation on page load if values are pre-filled (e.g., on edit)
+            calculateVariance(); 
+        }
+    });
+</script>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const quantityField = document.getElementById('id_quantity');

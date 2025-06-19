@@ -102,26 +102,26 @@ def budget_detail(request, budget_id):
     expense_items = budget.items.filter(item_type='expense')
     budget_items = budget.items.all().order_by('item_type', 'category')
     
-    # Calculate actual transactions within budget period
-    actual_income = Transaction.objects.filter(
-        user=request.user,
-        farm=budget.farm,
-        transaction_type='income',
-        date__gte=budget.start_date,
-        date__lte=budget.end_date
-    ).select_related('income')
+    # Calculate actual transactions within budget period (can be kept for other purposes or removed if not used elsewhere)
+    # actual_income_transactions = Transaction.objects.filter(
+    #     user=request.user,
+    #     farm=budget.farm,
+    #     transaction_type='income',
+    #     date__gte=budget.start_date,
+    #     date__lte=budget.end_date
+    # ).select_related('income')
     
-    actual_expenses = Transaction.objects.filter(
-        user=request.user,
-        farm=budget.farm,
-        transaction_type='expense',
-        date__gte=budget.start_date,
-        date__lte=budget.end_date
-    ).select_related('expense')
+    # actual_expense_transactions = Transaction.objects.filter(
+    #     user=request.user,
+    #     farm=budget.farm,
+    #     transaction_type='expense',
+    #     date__gte=budget.start_date,
+    #     date__lte=budget.end_date
+    # ).select_related('expense')
     
-    # Calculate totals
-    total_actual_income = actual_income.aggregate(total=Sum('amount'))['total'] or 0
-    total_actual_expenses = actual_expenses.aggregate(total=Sum('amount'))['total'] or 0
+    # Calculate totals from BudgetItem actual_amount
+    total_actual_income = income_items.aggregate(total=Sum('actual_amount'))['total'] or 0
+    total_actual_expenses = expense_items.aggregate(total=Sum('actual_amount'))['total'] or 0
     actual_profit = total_actual_income - total_actual_expenses
     
     # Calculate variance
@@ -134,8 +134,8 @@ def budget_detail(request, budget_id):
         'budget_items': budget_items,
         'income_items': income_items,
         'expense_items': expense_items,
-        'actual_income': actual_income,
-        'actual_expenses': actual_expenses,
+        # 'actual_income_transactions': actual_income_transactions, # Pass if needed elsewhere in template
+        # 'actual_expense_transactions': actual_expense_transactions, # Pass if needed elsewhere in template
         'total_actual_income': total_actual_income,
         'total_actual_expenses': total_actual_expenses,
         'actual_profit': actual_profit,

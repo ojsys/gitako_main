@@ -38,7 +38,9 @@ def activity_create(request, crop_cycle_id=None):
     if request.method == 'POST':
         form = ActivityForm(request.POST)
         if form.is_valid():
-            activity = form.save()
+            activity = form.save(commit=False)  # Don't save to DB yet
+            activity.created_by = request.user  # Set the created_by field
+            activity.save()  # Now save to DB
             messages.success(request, 'Activity created successfully!')
             
             # Redirect based on where the request came from
@@ -150,3 +152,22 @@ def mark_activity_complete(request, activity_id):
     if 'next' in request.GET:
         return redirect(request.GET['next'])
     return redirect('activities:activity_detail', activity_id=activity.id)
+
+
+
+@login_required
+def mark_activity_incomplete(request, activity_id):
+    """View to mark an activity as incomplete"""
+    activity = get_object_or_404(Activity, id=activity_id, field__farm__owner=request.user)
+    
+    if request.method == 'POST':
+        activity.status = 'incomplete'
+        activity.actual_date = None
+        activity.save()
+        messages.success(request, 'Activity marked as incomplete!')
+    
+    # Redirect back to the referring page
+    if 'next' in request.GET:
+        return redirect(request.GET['next'])
+    return redirect('activities:activity_detail', activity_id=activity.id)
+

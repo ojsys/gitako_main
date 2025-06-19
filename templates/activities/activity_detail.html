@@ -1,4 +1,5 @@
 {% extends 'dashboard/base_dashboard.html' %}
+{% load humanize %}
 
 {% block title %}{{ activity.title }} - Activity Details - Gitako Farm Management{% endblock %}
 
@@ -115,19 +116,19 @@
                 <div class="card-body">
                     <div class="row mb-3">
                         <div class="col-md-4 fw-bold">Labor Cost:</div>
-                        <div class="col-md-8">${{ activity.labor_cost|floatformat:2 }}</div>
+                        <div class="col-md-8">₦{{ activity.labor_cost|floatformat:2|intcomma }}</div>
                     </div>
                     <div class="row mb-3">
                         <div class="col-md-4 fw-bold">Material Cost:</div>
-                        <div class="col-md-8">${{ activity.material_cost|floatformat:2 }}</div>
+                        <div class="col-md-8">₦{{ activity.material_cost|floatformat:2|intcomma }}</div>
                     </div>
                     <div class="row mb-3">
                         <div class="col-md-4 fw-bold">Other Cost:</div>
-                        <div class="col-md-8">${{ activity.other_cost|floatformat:2 }}</div>
+                        <div class="col-md-8">₦{{ activity.other_cost|floatformat:2|intcomma }}</div>
                     </div>
                     <div class="row mb-3">
                         <div class="col-md-4 fw-bold">Total Cost:</div>
-                        <div class="col-md-8 fw-bold">${{ total_cost|floatformat:2 }}</div>
+                        <div class="col-md-8 fw-bold">₦{{ total_cost|floatformat:2|intcomma }}</div>
                     </div>
                 </div>
             </div>

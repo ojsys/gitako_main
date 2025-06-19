@@ -56,10 +56,6 @@ class BudgetForm(forms.ModelForm):
         
         return cleaned_data
 
-# forms.py
-
-from django import forms
-from .models import BudgetItem
 
 class BudgetItemForm(forms.ModelForm):
     """Form for creating and editing budget items"""
@@ -75,6 +71,9 @@ class BudgetItemForm(forms.ModelForm):
         self.fields['category'].required = True
         self.fields['description'].required = True
         self.fields['amount'].required = True
+        self.fields['actual_amount'].required = False
+        self.fields['variance'].required = False
+        self.fields['variance'].widget.attrs['readonly'] = True # Add this line
         
         # Optional fields
         self.fields['quantity'].required = False
@@ -93,6 +92,8 @@ class BudgetItemForm(forms.ModelForm):
         self.fields['category'].widget.attrs['placeholder'] = 'e.g., Seeds, Fertilizer, Labor'
         self.fields['description'].widget.attrs['placeholder'] = 'Brief description of the item'
         self.fields['amount'].widget.attrs['placeholder'] = '0.00'
+        self.fields['actual_amount'].widget.attrs['placeholder'] = '0.00'
+        self.fields['variance'].widget.attrs['placeholder'] = '0.00'
         self.fields['quantity'].widget.attrs['placeholder'] = 'Optional quantity'
         self.fields['unit'].widget.attrs['placeholder'] = 'e.g., kg, bags, hours'
         self.fields['price_per_unit'].widget.attrs['placeholder'] = 'Price per unit'
@@ -102,7 +103,14 @@ class BudgetItemForm(forms.ModelForm):
         quantity = cleaned_data.get('quantity')
         price_per_unit = cleaned_data.get('price_per_unit')
         amount = cleaned_data.get('amount')
-        
+        actual_amount = cleaned_data.get('actual_amount')
+        # variance = cleaned_data.get('variance') # We will calculate this, so no need to get from cleaned_data
+    
+        # Calculate variance if amount and actual_amount are present
+        if amount is not None and actual_amount is not None:
+            cleaned_data['variance'] = float(amount) - float(actual_amount)
+        else:
+            cleaned_data['variance'] = None # Or 0.00 if you prefer
         
         # If quantity and price_per_unit are provided, validate amount calculation
         if quantity is not None and price_per_unit is not None and amount:
@@ -116,7 +124,7 @@ class BudgetItemForm(forms.ModelForm):
     class Meta:
         model = BudgetItem
         fields = [
-            'item_type', 'category', 'description', 'amount',
+            'item_type', 'category', 'description', 'amount', 'actual_amount', 'variance',
             'quantity', 'unit', 'price_per_unit'
         ]
         widgets = {
@@ -128,6 +136,17 @@ class BudgetItemForm(forms.ModelForm):
                 'step': '0.01',
                 'min': '0'
             }),
+            'actual_amount': forms.NumberInput(attrs={
+                'class': 'form-control', 
+                'step': '0.01',
+                'min': '0'
+            }),
+            'variance': forms.NumberInput(attrs={
+                'class': 'form-control', 
+                'step': '0.01',
+                'min': '0'
+            }),
+
             'quantity': forms.NumberInput(attrs={
                 'class': 'form-control', 
                 'step': '0.01',
@@ -145,7 +164,9 @@ class BudgetItemForm(forms.ModelForm):
             'item_type': 'Type',
             'category': 'Category',
             'description': 'Description',
-            'amount': 'Total Amount (₦)',
+            'amount': 'Amount (₦)',
+            'actual_amount': 'Actual Amount (₦)',
+            'variance': 'Variance (₦)',
             'quantity': 'Quantity',
             'unit': 'Unit',
             'price_per_unit': 'Price per Unit (₦)',
@@ -155,7 +176,9 @@ class BudgetItemForm(forms.ModelForm):
             'item_type': 'Select whether this is an income or expense item',
             'category': 'Category of the budget item (e.g., Seeds, Labor, Sales)',
             'description': 'Brief description of what this item is for',
-            'amount': 'Total amount for this budget item',
+            'amount': 'Amount for this budget item',
+            'actual_amount': 'Actual amount for this budget item',
+            'variance': 'Variance between amount and actual amount',
             'quantity': 'Optional: How many units (leave blank if not applicable)',
             'unit': 'Optional: Unit of measurement (e.g., kg, bags, hours)',
             'price_per_unit': 'Optional: Price per individual unit',

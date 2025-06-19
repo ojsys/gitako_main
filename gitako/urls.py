@@ -7,7 +7,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     
     # Core site URLs
-    path('', include('core.urls')),
+    path('core', include('core.urls')),
     
     # Dashboard URLs
     path('dashboard/', include('apps.dashboard.urls')),
@@ -17,7 +17,7 @@ urlpatterns = [
     path('farms/', include('apps.farms.urls')),
     path('activities/', include('apps.activities.urls')),
     path('inventory/', include('apps.inventory.urls')),
-    path('site_config/', include('apps.site_config.urls')),
+    path('', include('apps.site_config.urls')), # For Home
     path('financials/', include('apps.financials.urls')),
     path('marketplace/', include('apps.marketplace.urls')),
     path('recommendations/', include('apps.recommendations.urls')),

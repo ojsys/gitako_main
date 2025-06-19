@@ -157,6 +157,8 @@ class BudgetItem(models.Model):
     category = models.CharField(max_length=50)
     description = models.CharField(max_length=255)
     amount = models.DecimalField(max_digits=12, decimal_places=2)
+    actual_amount = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    variance = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
     
     # Optional fields
     quantity = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)

@@ -1,5 +1,6 @@
 {% extends 'financials/base.html' %}
 {% load static %}
+{% load humanize %}
 
 {% block title %}Budget Dashboard - {{ block.super }}{% endblock %}
 
@@ -27,7 +28,7 @@
                 <div class="card-body text-center">
                     <i class="fas fa-file-invoice-dollar fa-3x text-success mb-3"></i>
                     <h6 class="text-muted">Active Budgets</h6>
-                    <h3>{{ active_budgets_count|default:"0" }}</h3>
+                    <h3>{{ active_budgets_count|default:"0"|intcomma }}</h3>
                 </div>
             </div>
         </div>
@@ -36,7 +37,7 @@
                 <div class="card-body text-center">
                     <i class="fas fa-money-bill-wave fa-3x text-success mb-3"></i>
                     <h6 class="text-muted">Total Planned Income</h6>
-                    <h3>${{ total_planned_income|default:"0.00"|floatformat:2 }}</h3>
+                    <h3>₦{{ total_planned_income|default:"0.00"|floatformat:2|intcomma }}</h3>
                 </div>
             </div>
         </div>
@@ -45,7 +46,7 @@
                 <div class="card-body text-center">
                     <i class="fas fa-hand-holding-usd fa-3x text-success mb-3"></i>
                     <h6 class="text-muted">Total Planned Expenses</h6>
-                    <h3>${{ total_planned_expenses|default:"0.00"|floatformat:2 }}</h3>
+                    <h3>₦{{ total_planned_expenses|default:"0.00"|floatformat:2|intcomma }}</h3>
                 </div>
             </div>
         </div>
@@ -54,7 +55,7 @@
                 <div class="card-body text-center">
                     <i class="fas fa-chart-line fa-3x text-success mb-3"></i>
                     <h6 class="text-muted">Projected Profit</h6>
-                    <h3>${{ projected_profit|default:"0.00"|floatformat:2 }}</h3>
+                    <h3>₦{{ projected_profit|default:"0.00"|floatformat:2|intcomma }}</h3>
                 </div>
             </div>
         </div>
@@ -91,10 +92,10 @@
                                 {% for budget in recent_budgets %}
                                 <tr>
                                     <td>{{ budget.farm.name }}</td>
-                                    <td>{{ budget.name }}</td>
+                                    <td>{{ budget.title }}</td>
                                     <td>{{ budget.start_date|date:"M d, Y" }} - {{ budget.end_date|date:"M d, Y" }}</td>
-                                    <td class="text-success">${{ budget.planned_income|floatformat:2 }}</td>
-                                    <td class="text-danger">${{ budget.planned_expenses|floatformat:2 }}</td>
+                                    <td class="text-success">₦{{ budget.total_planned_income|floatformat:2|intcomma }}</td>
+                                    <td class="text-danger">₦{{ budget.total_planned_expenses|floatformat:2|intcomma }}</td>
                                     <td>
                                         {% if budget.is_active %}
                                         <span class="badge bg-success">Active</span>
