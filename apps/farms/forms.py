@@ -2,8 +2,10 @@
 
 from django import forms
 from django.core.exceptions import ValidationError
-from .models import Farm, FarmSection, Crop, CropVariety, CropCycle 
-#Disease, Pest, SoilTest, WaterSource, Fertilizer, WeatherData
+from .models import (
+    Farm, FarmSection, Crop, CropVariety, CropCycle,
+    CropCalendar, SeasonalPlanning, PlannedCropAllocation, CropRotationPlan
+)
 from django.utils import timezone
 from datetime import date, timedelta
 
@@ -286,6 +288,10 @@ class FarmSectionFilterForm(forms.Form):
         empty_label="All Farms",
         widget=forms.Select(attrs={'class': 'form-control'})
     )
+    name = forms.CharField(
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter field name'})
+    )
     
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user', None)
@@ -322,3 +328,259 @@ class CropCycleFilterForm(forms.Form):
         
         if user:
             self.fields['farm'].queryset = Farm.objects.filter(owner=user, is_active=True)
+
+class CropCalendarForm(forms.ModelForm):
+    """Form for creating and editing crop calendar events"""
+    
+    class Meta:
+        model = CropCalendar
+        fields = [
+            'farm', 'crop_cycle', 'event_type', 'title', 'description',
+            'start_date', 'end_date', 'is_recurring', 'recurrence_pattern',
+            'recurrence_interval', 'status', 'priority', 'assigned_to',
+            'weather_dependent', 'min_temperature', 'max_temperature',
+            'max_wind_speed', 'no_rain_required', 'estimated_cost'
+        ]
+        widgets = {
+            'farm': forms.Select(attrs={'class': 'form-control'}),
+            'crop_cycle': forms.Select(attrs={'class': 'form-control'}),
+            'event_type': forms.Select(attrs={'class': 'form-control'}),
+            'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter event title'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'start_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'end_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'is_recurring': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'recurrence_pattern': forms.Select(attrs={'class': 'form-control'}, choices=[
+                ('', 'Select Pattern'),
+                ('daily', 'Daily'),
+                ('weekly', 'Weekly'),
+                ('monthly', 'Monthly'),
+            ]),
+            'recurrence_interval': forms.NumberInput(attrs={'class': 'form-control', 'min': 1}),
+            'status': forms.Select(attrs={'class': 'form-control'}),
+            'priority': forms.Select(attrs={'class': 'form-control'}),
+            'assigned_to': forms.Select(attrs={'class': 'form-control'}),
+            'weather_dependent': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'min_temperature': forms.NumberInput(attrs={'class': 'form-control', 'step': 0.1}),
+            'max_temperature': forms.NumberInput(attrs={'class': 'form-control', 'step': 0.1}),
+            'max_wind_speed': forms.NumberInput(attrs={'class': 'form-control', 'step': 0.1}),
+            'no_rain_required': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'estimated_cost': forms.NumberInput(attrs={'class': 'form-control', 'step': 0.01}),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
+        
+        # Limit choices to user's farms and crop cycles
+        if self.user:
+            self.fields['farm'].queryset = Farm.objects.filter(owner=self.user, is_active=True)
+            self.fields['crop_cycle'].queryset = CropCycle.objects.filter(
+                field__farm__owner=self.user
+            ).select_related('crop', 'field')
+            from django.contrib.auth import get_user_model
+            User = get_user_model()
+            self.fields['assigned_to'].queryset = User.objects.filter(
+                farm_employments__farm__owner=self.user,
+                farm_employments__is_active=True
+            ).distinct()
+        
+        # Set empty labels
+        self.fields['farm'].empty_label = "Select Farm"
+        self.fields['crop_cycle'].empty_label = "Select Crop Cycle (Optional)"
+        self.fields['assigned_to'].empty_label = "Assign to (Optional)"
+        
+        # Set initial values
+        if not self.instance.pk:
+            self.fields['start_date'].initial = date.today()
+            self.fields['status'].initial = 'planned'
+            self.fields['priority'].initial = 'medium'
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        start_date = cleaned_data.get('start_date')
+        end_date = cleaned_data.get('end_date')
+        is_recurring = cleaned_data.get('is_recurring')
+        recurrence_pattern = cleaned_data.get('recurrence_pattern')
+        
+        if end_date and start_date and end_date < start_date:
+            raise ValidationError('End date must be after start date.')
+        
+        if is_recurring and not recurrence_pattern:
+            raise ValidationError('Recurrence pattern is required for recurring events.')
+        
+        return cleaned_data
+
+class SeasonalPlanningForm(forms.ModelForm):
+    """Form for creating seasonal planning"""
+    
+    class Meta:
+        model = SeasonalPlanning
+        fields = [
+            'farm', 'field', 'season_year', 'season', 'planning_notes',
+            'soil_prep_required', 'irrigation_plan', 'fertilization_plan',
+            'estimated_total_cost', 'estimated_revenue', 'status'
+        ]
+        widgets = {
+            'farm': forms.Select(attrs={'class': 'form-control'}),
+            'field': forms.Select(attrs={'class': 'form-control'}),
+            'season_year': forms.NumberInput(attrs={'class': 'form-control', 'min': 2024}),
+            'season': forms.Select(attrs={'class': 'form-control'}),
+            'planning_notes': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'soil_prep_required': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'irrigation_plan': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'fertilization_plan': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'estimated_total_cost': forms.NumberInput(attrs={'class': 'form-control', 'step': 0.01}),
+            'estimated_revenue': forms.NumberInput(attrs={'class': 'form-control', 'step': 0.01}),
+            'status': forms.Select(attrs={'class': 'form-control'}),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
+        
+        if self.user:
+            self.fields['farm'].queryset = Farm.objects.filter(owner=self.user, is_active=True)
+            self.fields['field'].queryset = FarmSection.objects.filter(
+                farm__owner=self.user, is_active=True
+            ).select_related('farm')
+        
+        # Set initial values
+        if not self.instance.pk:
+            current_year = date.today().year
+            self.fields['season_year'].initial = current_year
+        
+        # Set empty labels
+        self.fields['farm'].empty_label = "Select Farm"
+        self.fields['field'].empty_label = "Select Field"
+
+class PlannedCropAllocationForm(forms.ModelForm):
+    """Form for planned crop allocation within seasonal planning"""
+    
+    class Meta:
+        model = PlannedCropAllocation
+        fields = [
+            'crop', 'crop_variety', 'allocated_area', 'expected_yield_per_hectare',
+            'planned_planting_date', 'planned_harvest_date', 'estimated_cost_per_hectare',
+            'expected_price_per_unit', 'notes'
+        ]
+        widgets = {
+            'crop': forms.Select(attrs={'class': 'form-control'}),
+            'crop_variety': forms.Select(attrs={'class': 'form-control'}),
+            'allocated_area': forms.NumberInput(attrs={'class': 'form-control', 'step': 0.01}),
+            'expected_yield_per_hectare': forms.NumberInput(attrs={'class': 'form-control', 'step': 0.01}),
+            'planned_planting_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'planned_harvest_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'estimated_cost_per_hectare': forms.NumberInput(attrs={'class': 'form-control', 'step': 0.01}),
+            'expected_price_per_unit': forms.NumberInput(attrs={'class': 'form-control', 'step': 0.01}),
+            'notes': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        self.fields['crop'].queryset = Crop.objects.all()
+        self.fields['crop_variety'].queryset = CropVariety.objects.none()
+        
+        # Set empty labels
+        self.fields['crop'].empty_label = "Select Crop"
+        self.fields['crop_variety'].empty_label = "Select Variety (Optional)"
+        
+        # Update crop variety choices if crop is selected
+        if 'crop' in self.data:
+            try:
+                crop_id = int(self.data.get('crop'))
+                self.fields['crop_variety'].queryset = CropVariety.objects.filter(crop_id=crop_id)
+            except (ValueError, TypeError):
+                pass
+        elif self.instance.pk and self.instance.crop:
+            self.fields['crop_variety'].queryset = CropVariety.objects.filter(crop=self.instance.crop)
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        planting_date = cleaned_data.get('planned_planting_date')
+        harvest_date = cleaned_data.get('planned_harvest_date')
+        allocated_area = cleaned_data.get('allocated_area')
+        
+        if harvest_date and planting_date and harvest_date <= planting_date:
+            raise ValidationError('Harvest date must be after planting date.')
+        
+        if allocated_area and allocated_area <= 0:
+            raise ValidationError('Allocated area must be greater than 0.')
+        
+        return cleaned_data
+
+class CropRotationPlanForm(forms.ModelForm):
+    """Form for creating crop rotation plans"""
+    
+    class Meta:
+        model = CropRotationPlan
+        fields = [
+            'farm', 'field', 'plan_name', 'rotation_cycle_years',
+            'year_1_crop', 'year_2_crop', 'year_3_crop', 'year_4_crop',
+            'soil_health_benefits', 'pest_management_benefits',
+            'economic_benefits', 'start_year', 'is_active'
+        ]
+        widgets = {
+            'farm': forms.Select(attrs={'class': 'form-control'}),
+            'field': forms.Select(attrs={'class': 'form-control'}),
+            'plan_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter plan name'}),
+            'rotation_cycle_years': forms.NumberInput(attrs={'class': 'form-control', 'min': 2, 'max': 4}),
+            'year_1_crop': forms.Select(attrs={'class': 'form-control'}),
+            'year_2_crop': forms.Select(attrs={'class': 'form-control'}),
+            'year_3_crop': forms.Select(attrs={'class': 'form-control'}),
+            'year_4_crop': forms.Select(attrs={'class': 'form-control'}),
+            'soil_health_benefits': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'pest_management_benefits': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'economic_benefits': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'start_year': forms.NumberInput(attrs={'class': 'form-control', 'min': 2024}),
+            'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
+        
+        if self.user:
+            self.fields['farm'].queryset = Farm.objects.filter(owner=self.user, is_active=True)
+            self.fields['field'].queryset = FarmSection.objects.filter(
+                farm__owner=self.user, is_active=True
+            ).select_related('farm')
+        
+        # Set crop choices
+        crop_queryset = Crop.objects.all()
+        for field_name in ['year_1_crop', 'year_2_crop', 'year_3_crop', 'year_4_crop']:
+            self.fields[field_name].queryset = crop_queryset
+            if field_name != 'year_1_crop':
+                self.fields[field_name].empty_label = "Select Crop (Optional)"
+        
+        # Set initial values
+        if not self.instance.pk:
+            current_year = date.today().year
+            self.fields['start_year'].initial = current_year
+            self.fields['rotation_cycle_years'].initial = 3
+        
+        # Set empty labels
+        self.fields['farm'].empty_label = "Select Farm"
+        self.fields['field'].empty_label = "Select Field"
+        self.fields['year_1_crop'].empty_label = "Select Year 1 Crop"
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        rotation_cycle_years = cleaned_data.get('rotation_cycle_years')
+        
+        # Ensure required crops are selected based on cycle years
+        if rotation_cycle_years:
+            required_crops = ['year_1_crop']
+            if rotation_cycle_years >= 2:
+                required_crops.append('year_2_crop')
+            if rotation_cycle_years >= 3:
+                required_crops.append('year_3_crop')
+            if rotation_cycle_years >= 4:
+                required_crops.append('year_4_crop')
+            
+            for crop_field in required_crops:
+                if not cleaned_data.get(crop_field):
+                    raise ValidationError(f'Crop for {crop_field.replace("_", " ").title()} is required for a {rotation_cycle_years}-year cycle.')
+        
+        return cleaned_data

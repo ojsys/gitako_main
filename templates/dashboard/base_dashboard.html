@@ -13,6 +13,26 @@
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
     <link rel="stylesheet" href="{% static 'css/financials.css' %}">
+    <link rel="stylesheet" href="{% static 'css/mobile.css' %}">
+    
+    <!-- PWA Meta Tags -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Gitako Farm">
+    <meta name="msapplication-TileColor" content="#2e7d32">
+    <meta name="msapplication-config" content="{% static 'browserconfig.xml' %}">
+    <meta name="theme-color" content="#2e7d32">
+    
+    <!-- Manifest -->
+    <link rel="manifest" href="{% static 'manifest.json' %}">
+    
+    <!-- Icons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'icons/icon-32x32.png' %}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{% static 'icons/icon-16x16.png' %}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'icons/apple-touch-icon.png' %}">
+    <link rel="mask-icon" href="{% static 'icons/safari-pinned-tab.svg' %}" color="#2e7d32">
+    
     <style>
         :root {
             --primary-color: #2e7d32;
@@ -80,6 +100,46 @@
         .btn-outline-primary:hover {
             background-color: var(--primary-color);
             color: white;
+        }
+        
+        /* Breadcrumb Styling */
+        .breadcrumb {
+            background: none;
+            padding: 0.5rem 0;
+            margin-bottom: 1rem;
+            font-size: 0.875rem;
+            border-radius: 0;
+        }
+        
+        .breadcrumb-item {
+            display: flex;
+            align-items: center;
+        }
+        
+        .breadcrumb-item + .breadcrumb-item::before {
+            content: "›";
+            color: #6c757d;
+            padding: 0 0.5rem;
+            font-weight: bold;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+        }
+        
+        .breadcrumb-item a {
+            color: var(--primary-color);
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+        
+        .breadcrumb-item a:hover {
+            color: var(--primary-dark);
+            text-decoration: underline;
+        }
+        
+        .breadcrumb-item.active {
+            color: #6c757d;
+            font-weight: 500;
         }
     </style>
     {% block extra_css %}{% endblock %}
@@ -156,11 +216,41 @@
                 </div>
                 
                 
+                <div class="nav-item {% if active_page == 'calendar' %}active{% endif %}">
+                    <a class="nav-link d-flex align-items-center py-3 text-white" href="{% url 'farms:crop_calendar' %}">
+                        <i class="material-icons me-3">event</i>
+                        <span>Crop Calendar</span>
+                        {% if active_page == 'calendar' %}
+                        <i class="material-icons ms-auto text-success">chevron_right</i>
+                        {% endif %}
+                    </a>
+                </div>
+
                 <div class="nav-item {% if active_page == 'tasks' %}active{% endif %}">
-                    <a class="nav-link d-flex align-items-center py-3 text-white" href="#">
+                    <a class="nav-link d-flex align-items-center py-3 text-white" href="{% url 'activities:activity_list' %}">
                         <i class="material-icons me-3">assignment</i>
-                        <span>Tasks & Planning</span>
+                        <span>Activities</span>
                         {% if active_page == 'tasks' %}
+                        <i class="material-icons ms-auto text-success">chevron_right</i>
+                        {% endif %}
+                    </a>
+                </div>
+
+                <div class="nav-item {% if active_page == 'planning' %}active{% endif %}">
+                    <a class="nav-link d-flex align-items-center py-3 text-white" href="{% url 'farms:seasonal_planning_list' %}">
+                        <i class="material-icons me-3">schedule</i>
+                        <span>Seasonal Planning</span>
+                        {% if active_page == 'planning' %}
+                        <i class="material-icons ms-auto text-success">chevron_right</i>
+                        {% endif %}
+                    </a>
+                </div>
+
+                <div class="nav-item {% if active_page == 'rotation' %}active{% endif %}">
+                    <a class="nav-link d-flex align-items-center py-3 text-white" href="{% url 'farms:crop_rotation_list' %}">
+                        <i class="material-icons me-3">rotate_right</i>
+                        <span>Crop Rotation</span>
+                        {% if active_page == 'rotation' %}
                         <i class="material-icons ms-auto text-success">chevron_right</i>
                         {% endif %}
                     </a>
@@ -172,7 +262,7 @@
                 </div>
                 
                 <div class="nav-item {% if active_page == 'inventory' %}active{% endif %}">
-                    <a class="nav-link d-flex align-items-center py-3 text-white" href="#">
+                    <a class="nav-link d-flex align-items-center py-3 text-white" href="{% url 'inventory:inventory_dashboard' %}">
                         <i class="material-icons me-3">inventory</i>
                         <span>Inventory</span>
                         {% if active_page == 'inventory' %}
@@ -226,11 +316,18 @@
                     </a>
                 </div>
                 
-                <div class="nav-item {% if active_page == 'production' %}active{% endif %}">
-                    <a class="nav-link d-flex align-items-center py-3 text-white" href="#">
+                <div class="nav-item">
+                    <a class="nav-link d-flex align-items-center py-3 text-white" href="#" onclick="alert('Analytics module temporarily unavailable'); return false;">
                         <i class="material-icons me-3">analytics</i>
-                        <span>Production Analytics</span>
-                        {% if active_page == 'production' %}
+                        <span>Profitability Analytics</span>
+                    </a>
+                </div>
+                
+                <div class="nav-item {% if active_page == 'recommendations' %}active{% endif %}">
+                    <a class="nav-link d-flex align-items-center py-3 text-white" href="{% url 'recommendations:dashboard' %}">
+                        <i class="material-icons me-3">psychology</i>
+                        <span>AI Recommendations</span>
+                        {% if active_page == 'recommendations' %}
                         <i class="material-icons ms-auto text-success">chevron_right</i>
                         {% endif %}
                     </a>
@@ -251,6 +348,21 @@
                         <i class="material-icons me-3">wb_sunny</i>
                         <span>Weather Forecast</span>
                         {% if active_page == 'weather' %}
+                        <i class="material-icons ms-auto text-success">chevron_right</i>
+                        {% endif %}
+                    </a>
+                </div>
+                
+                <!-- Marketplace -->
+                <div class="sidebar-heading small text-uppercase text-muted px-3 mt-4 mb-2">
+                    Marketplace
+                </div>
+                
+                <div class="nav-item {% if active_page == 'marketplace' %}active{% endif %}">
+                    <a class="nav-link d-flex align-items-center py-3 text-white" href="{% url 'marketplace:marketplace_dashboard' %}">
+                        <i class="material-icons me-3">store</i>
+                        <span>Marketplace</span>
+                        {% if active_page == 'marketplace' %}
                         <i class="material-icons ms-auto text-success">chevron_right</i>
                         {% endif %}
                     </a>
@@ -373,6 +485,148 @@
         window.addEventListener('resize', adjustLayout);
         window.addEventListener('load', adjustLayout);
     </script>
+    
+    <!-- PWA and Mobile Scripts -->
+    <script src="{% static 'js/pwa.js' %}"></script>
+    <script src="{% static 'js/mobile.js' %}"></script>
+    
+    <!-- Install App Button (hidden by default) -->
+    <button id="install-app" class="btn btn-success d-none" style="position: fixed; bottom: 20px; left: 20px; z-index: 1050;">
+        <i class="material-icons me-2">get_app</i> Install App
+    </button>
+    
+    <script>
+        // Add touch feedback styles
+        const touchFeedbackCSS = `
+            .touch-active {
+                background-color: rgba(0,0,0,0.1) !important;
+                transform: scale(0.98);
+                transition: all 0.1s ease;
+            }
+            
+            .spin {
+                animation: spin 1s linear infinite;
+            }
+            
+            @keyframes spin {
+                from { transform: rotate(0deg); }
+                to { transform: rotate(360deg); }
+            }
+            
+            .pull-to-refresh {
+                position: fixed;
+                top: -60px;
+                left: 0;
+                right: 0;
+                height: 60px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: rgba(46, 125, 50, 0.1);
+                color: var(--primary-color);
+                font-size: 0.9rem;
+                transition: all 0.3s ease;
+                z-index: 1020;
+            }
+            
+            .pull-to-refresh.ready {
+                background: rgba(46, 125, 50, 0.2);
+            }
+            
+            .pull-to-refresh.refreshing {
+                top: 0;
+            }
+            
+            .pull-indicator {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+            
+            .floating-label {
+                position: relative;
+                margin-bottom: 1rem;
+            }
+            
+            .floating-label input,
+            .floating-label textarea,
+            .floating-label select {
+                width: 100%;
+                padding: 12px 16px 8px 16px;
+                border: 2px solid #e9ecef;
+                border-radius: 8px;
+                font-size: 16px;
+                transition: border-color 0.3s ease;
+                background: white;
+            }
+            
+            .floating-label label {
+                position: absolute;
+                left: 16px;
+                top: 12px;
+                color: #6c757d;
+                font-size: 16px;
+                pointer-events: none;
+                transition: all 0.3s ease;
+                background: white;
+                padding: 0 4px;
+            }
+            
+            .floating-label.focused label,
+            .floating-label input:focus + label,
+            .floating-label textarea:focus + label,
+            .floating-label select:focus + label {
+                top: -8px;
+                left: 12px;
+                font-size: 12px;
+                color: var(--primary-color);
+                font-weight: 600;
+            }
+            
+            .floating-label input:focus,
+            .floating-label textarea:focus,
+            .floating-label select:focus {
+                border-color: var(--primary-color);
+                outline: none;
+                box-shadow: 0 0 0 0.2rem rgba(46, 125, 50, 0.25);
+            }
+            
+            @media (max-width: 768px) {
+                .keyboard-open .quick-actions {
+                    display: none;
+                }
+                
+                .keyboard-open .main-content {
+                    padding-bottom: 0;
+                }
+            }
+        `;
+        
+        const style = document.createElement('style');
+        style.textContent = touchFeedbackCSS;
+        document.head.appendChild(style);
+        
+        // Analytics for PWA usage
+        if (window.matchMedia('(display-mode: standalone)').matches) {
+            console.log('App is running in standalone mode (PWA)');
+            // Track PWA usage
+            if (typeof gtag !== 'undefined') {
+                gtag('event', 'pwa_usage', {
+                    'event_category': 'PWA',
+                    'event_label': 'standalone_mode'
+                });
+            }
+        }
+        
+        // Add viewport meta tag dynamically for better mobile support
+        const viewport = document.querySelector('meta[name="viewport"]');
+        if (viewport) {
+            viewport.setAttribute('content', 
+                'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover'
+            );
+        }
+    </script>
+    
     {% block extra_js %}{% endblock %}
 </body>
 </html>

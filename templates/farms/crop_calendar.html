@@ -1,0 +1,552 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block title %}Crop Calendar - Gitako Farm Management{% endblock %}
+
+{% block extra_css %}
+<style>
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 1px;
+    background-color: #dee2e6;
+    border: 1px solid #dee2e6;
+}
+
+.calendar-header {
+    background-color: #00c853;
+    color: white;
+    padding: 10px;
+    text-align: center;
+    font-weight: bold;
+}
+
+.calendar-day {
+    background-color: white;
+    min-height: 120px;
+    padding: 8px;
+    position: relative;
+    transition: background-color 0.2s;
+}
+
+.calendar-day:hover {
+    background-color: #f8f9fa;
+}
+
+.calendar-day.other-month {
+    background-color: #f8f9fa;
+    color: #6c757d;
+}
+
+.calendar-day.today {
+    background-color: #e3f2fd;
+    border: 2px solid #2196f3;
+}
+
+.calendar-day-number {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.calendar-event {
+    background-color: #00c853;
+    color: white;
+    padding: 2px 6px;
+    margin: 2px 0;
+    border-radius: 3px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    display: block;
+    text-decoration: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.calendar-event:hover {
+    background-color: #2e7d32;
+    color: white;
+    text-decoration: none;
+}
+
+.calendar-event.priority-high {
+    background-color: #f44336;
+}
+
+.calendar-event.priority-medium {
+    background-color: #ff9800;
+}
+
+.calendar-event.priority-low {
+    background-color: #4caf50;
+}
+
+.calendar-event.status-completed {
+    background-color: #9e9e9e;
+    text-decoration: line-through;
+}
+
+.calendar-event.status-overdue {
+    background-color: #d32f2f;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.7; }
+    100% { opacity: 1; }
+}
+
+.event-list-item {
+    border-left: 4px solid #00c853;
+    transition: all 0.2s;
+}
+
+.event-list-item:hover {
+    background-color: rgba(0, 200, 83, 0.05);
+}
+
+.event-list-item.priority-high {
+    border-left-color: #f44336;
+}
+
+.event-list-item.priority-medium {
+    border-left-color: #ff9800;
+}
+
+.event-list-item.priority-low {
+    border-left-color: #4caf50;
+}
+
+.quick-stats {
+    background: linear-gradient(135deg, #00c853 0%, #4caf50 100%);
+    color: white;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: bold;
+    display: block;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+</style>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid px-4 py-4">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="h3 mb-0 text-success">Crop Calendar</h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'dashboard:index' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Crop Calendar</li>
+                </ol>
+            </nav>
+        </div>
+        <div class="col-md-6 text-end">
+            <div class="btn-group" role="group">
+                <a href="{% url 'farms:crop_calendar_download_template' %}" class="btn btn-outline-success me-1" title="Download Excel template for bulk event upload">
+                    <i class="material-icons small align-middle">download</i> Download Template
+                </a>
+                <button type="button" class="btn btn-outline-primary me-1" data-bs-toggle="modal" data-bs-target="#bulkUploadModal" title="Upload Excel file with multiple events">
+                    <i class="material-icons small align-middle">upload</i> Bulk Upload
+                </button>
+                <a href="{% url 'farms:crop_calendar_create' %}" class="btn btn-success">
+                    <i class="material-icons small align-middle">add</i> Add Event
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="quick-stats mb-4">
+        <div class="row">
+            <div class="col-md-3">
+                <div class="stat-item">
+                    <span class="stat-number">{{ upcoming_events|length }}</span>
+                    <span class="stat-label">Upcoming Events</span>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-item">
+                    <span class="stat-number">{{ overdue_events|length }}</span>
+                    <span class="stat-label">Overdue Events</span>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-item">
+                    <span class="stat-number">{{ calendar_events|length }}</span>
+                    <span class="stat-label">This Month</span>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-item">
+                    <span class="stat-number">75%</span>
+                    <span class="stat-label">Completion Rate</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Calendar -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
+                    <h5 class="text-success mb-0">{{ month_name }} {{ current_year }}</h5>
+                    <div class="btn-group" role="group">
+                        <a href="?month={{ prev_month }}&year={{ prev_year }}" class="btn btn-outline-success btn-sm">
+                            <i class="material-icons small">chevron_left</i>
+                        </a>
+                        <a href="?month={{ today.month }}&year={{ today.year }}" class="btn btn-outline-success btn-sm">Today</a>
+                        <a href="?month={{ next_month }}&year={{ next_year }}" class="btn btn-outline-success btn-sm">
+                            <i class="material-icons small">chevron_right</i>
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="calendar-grid">
+                        <!-- Calendar headers -->
+                        <div class="calendar-header">Sun</div>
+                        <div class="calendar-header">Mon</div>
+                        <div class="calendar-header">Tue</div>
+                        <div class="calendar-header">Wed</div>
+                        <div class="calendar-header">Thu</div>
+                        <div class="calendar-header">Fri</div>
+                        <div class="calendar-header">Sat</div>
+                        
+                        <!-- Calendar days -->
+                        {% for week in calendar_data %}
+                            {% for day in week %}
+                                {% if day == 0 %}
+                                    <div class="calendar-day other-month"></div>
+                                {% else %}
+                                    {% with day_date=current_year|add:"-01-01"|add:current_month|add:day %}
+                                        <div class="calendar-day {% if day == today.day and current_month == today.month and current_year == today.year %}today{% endif %}">
+                                            <div class="calendar-day-number">{{ day }}</div>
+                                            {% for event in events_by_date.values %}
+                                                {% for e in event %}
+                                                    {% if e.start_date.day == day %}
+                                                        <a href="#" class="calendar-event priority-{{ e.priority }} status-{{ e.status }}" 
+                                                           title="{{ e.title }} - {{ e.description|truncatechars:50 }}"
+                                                           data-bs-toggle="modal" data-bs-target="#eventModal{{ e.id }}">
+                                                            {{ e.title|truncatechars:15 }}
+                                                        </a>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            {% endfor %}
+                                        </div>
+                                    {% endwith %}
+                                {% endif %}
+                            {% endfor %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Upcoming Events -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-0">
+                    <h6 class="text-success mb-0">Upcoming Events</h6>
+                </div>
+                <div class="card-body">
+                    {% if upcoming_events %}
+                        {% for event in upcoming_events %}
+                            <div class="event-list-item priority-{{ event.priority }} p-3 mb-2 rounded">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="mb-1">{{ event.title }}</h6>
+                                        <p class="small text-muted mb-1">{{ event.farm.name }}</p>
+                                        <p class="small mb-0">{{ event.start_date|date:"M d, Y" }}</p>
+                                    </div>
+                                    <div class="dropdown">
+                                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                            <i class="material-icons small">more_vert</i>
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li><a class="dropdown-item" href="{% url 'farms:crop_calendar_edit' event.id %}">Edit</a></li>
+                                            <li><a class="dropdown-item" href="#" onclick="markComplete({{ event.id }})">Mark Complete</a></li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li><a class="dropdown-item text-danger" href="{% url 'farms:crop_calendar_delete' event.id %}">Delete</a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="material-icons text-muted" style="font-size: 48px;">event</i>
+                            <p class="mt-2 text-muted">No upcoming events</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Overdue Events -->
+            {% if overdue_events %}
+            <div class="card border-0 shadow-sm mb-4 border-danger">
+                <div class="card-header bg-danger text-white border-0">
+                    <h6 class="mb-0">Overdue Events</h6>
+                </div>
+                <div class="card-body">
+                    {% for event in overdue_events %}
+                        <div class="event-list-item p-3 mb-2 rounded bg-light">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="mb-1 text-danger">{{ event.title }}</h6>
+                                    <p class="small text-muted mb-1">{{ event.farm.name }}</p>
+                                    <p class="small text-danger mb-0">Due: {{ event.start_date|date:"M d, Y" }}</p>
+                                </div>
+                                <button class="btn btn-sm btn-danger" onclick="markComplete({{ event.id }})">
+                                    Complete
+                                </button>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Quick Actions -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0">
+                    <h6 class="text-success mb-0">Quick Actions</h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'farms:crop_calendar_create' %}" class="btn btn-outline-success">
+                            <i class="material-icons small align-middle">add</i> Add Event
+                        </a>
+                        <a href="{% url 'farms:seasonal_planning_list' %}" class="btn btn-outline-primary">
+                            <i class="material-icons small align-middle">schedule</i> Seasonal Planning
+                        </a>
+                        <a href="{% url 'farms:crop_rotation_list' %}" class="btn btn-outline-warning">
+                            <i class="material-icons small align-middle">rotate_right</i> Crop Rotation
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Event Detail Modals -->
+{% for event in calendar_events %}
+<div class="modal fade" id="eventModal{{ event.id }}" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">{{ event.title }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-sm-6">
+                        <strong>Farm:</strong> {{ event.farm.name }}
+                    </div>
+                    <div class="col-sm-6">
+                        <strong>Status:</strong> 
+                        <span class="badge bg-{{ event.status|yesno:"success,warning,secondary" }}">
+                            {{ event.get_status_display }}
+                        </span>
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-sm-6">
+                        <strong>Date:</strong> {{ event.start_date|date:"M d, Y" }}
+                        {% if event.end_date %}
+                            - {{ event.end_date|date:"M d, Y" }}
+                        {% endif %}
+                    </div>
+                    <div class="col-sm-6">
+                        <strong>Priority:</strong> 
+                        <span class="badge bg-{{ event.priority|yesno:"danger,warning,success" }}">
+                            {{ event.get_priority_display }}
+                        </span>
+                    </div>
+                </div>
+                {% if event.description %}
+                <div class="mt-3">
+                    <strong>Description:</strong>
+                    <p>{{ event.description }}</p>
+                </div>
+                {% endif %}
+                {% if event.crop_cycle %}
+                <div class="mt-2">
+                    <strong>Crop Cycle:</strong> {{ event.crop_cycle.crop.name }} at {{ event.crop_cycle.field.name }}
+                </div>
+                {% endif %}
+                {% if event.assigned_to %}
+                <div class="mt-2">
+                    <strong>Assigned to:</strong> {{ event.assigned_to.get_full_name }}
+                </div>
+                {% endif %}
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <a href="{% url 'farms:crop_calendar_edit' event.id %}" class="btn btn-primary">Edit</a>
+                {% if event.status != 'completed' %}
+                <button type="button" class="btn btn-success" onclick="markComplete({{ event.id }})">Mark Complete</button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function markComplete(eventId) {
+    if (confirm('Mark this event as completed?')) {
+        fetch(`/farms/calendar/event/${eventId}/complete/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                notes: '',
+                actual_cost: ''
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Error: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while updating the event.');
+        });
+    }
+}
+
+// Initialize tooltips
+document.addEventListener('DOMContentLoaded', function() {
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+});
+
+// File upload validation
+function validateExcelFile() {
+    const fileInput = document.getElementById('excelFileInput');
+    const file = fileInput.files[0];
+    
+    if (!file) {
+        alert('Please select an Excel file to upload.');
+        return false;
+    }
+    
+    const allowedTypes = [
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'application/vnd.ms-excel'
+    ];
+    
+    if (!allowedTypes.includes(file.type) && !file.name.match(/\.(xlsx|xls)$/i)) {
+        alert('Please select a valid Excel file (.xlsx or .xls).');
+        return false;
+    }
+    
+    if (file.size > 10 * 1024 * 1024) { // 10MB limit
+        alert('File size must be less than 10MB.');
+        return false;
+    }
+    
+    return true;
+}
+</script>
+
+<!-- Bulk Upload Modal -->
+<div class="modal fade" id="bulkUploadModal" tabindex="-1" aria-labelledby="bulkUploadModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title text-success" id="bulkUploadModalLabel">
+                    <i class="material-icons align-middle me-2">upload</i>
+                    Bulk Upload Calendar Events
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info">
+                    <i class="material-icons small align-middle">info</i>
+                    <strong>Instructions:</strong>
+                    <ol class="mb-0 mt-2">
+                        <li>Download the Excel template using the "Download Template" button</li>
+                        <li>Fill in your calendar events following the template format</li>
+                        <li>Save the file and upload it here</li>
+                        <li>All valid events will be created automatically</li>
+                    </ol>
+                </div>
+                
+                <form method="post" action="{% url 'farms:crop_calendar_bulk_upload' %}" enctype="multipart/form-data" onsubmit="return validateExcelFile()">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="excelFileInput" class="form-label">
+                            <strong>Select Excel File</strong>
+                        </label>
+                        <input type="file" class="form-control" id="excelFileInput" name="excel_file" 
+                               accept=".xlsx,.xls" required>
+                        <div class="form-text">
+                            Supported formats: .xlsx, .xls (Maximum size: 10MB)
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <i class="material-icons text-success mb-2" style="font-size: 2rem;">download</i>
+                                    <h6>Need Template?</h6>
+                                    <a href="{% url 'farms:crop_calendar_download_template' %}" class="btn btn-outline-success btn-sm">
+                                        Download Template
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <i class="material-icons text-primary mb-2" style="font-size: 2rem;">help</i>
+                                    <h6>Need Help?</h6>
+                                    <small class="text-muted">
+                                        The template includes detailed instructions and examples
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" form="excelFileInput" class="btn btn-primary" onclick="document.querySelector('form').submit()">
+                    <i class="material-icons small align-middle">upload</i> Upload Events
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

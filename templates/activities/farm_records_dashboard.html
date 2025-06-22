@@ -1,0 +1,595 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block title %}Farm Records Dashboard - Gitako Farm Management{% endblock %}
+
+{% block extra_css %}
+<style>
+.records-header {
+    background: linear-gradient(135deg, #2e7d32 0%, #4caf50 100%);
+    color: white;
+    border-radius: 15px;
+    padding: 30px;
+    margin-bottom: 30px;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 15px;
+    padding: 25px;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+    border: 1px solid #f0f0f0;
+    transition: all 0.3s;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.stat-card:hover {
+    box-shadow: 0 4px 25px rgba(0,0,0,0.12);
+    border-color: #4caf50;
+}
+
+.stat-number {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #2e7d32;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.stat-label {
+    color: #6c757d;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.activity-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    border-left: 4px solid transparent;
+    margin-bottom: 15px;
+    transition: all 0.3s;
+}
+
+.activity-card:hover {
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.activity-card.planting { border-left-color: #4caf50; }
+.activity-card.fertilizing { border-left-color: #ff9800; }
+.activity-card.pest_control { border-left-color: #f44336; }
+.activity-card.harvesting { border-left-color: #9c27b0; }
+.activity-card.irrigation { border-left-color: #2196f3; }
+.activity-card.other { border-left-color: #607d8b; }
+
+.status-badge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.status-completed { background: #e8f5e8; color: #2e7d32; }
+.status-planned { background: #e3f2fd; color: #1976d2; }
+.status-in-progress { background: #fff3e0; color: #f57c00; }
+.status-overdue { background: #ffebee; color: #d32f2f; }
+
+.chart-container {
+    background: white;
+    border-radius: 15px;
+    padding: 25px;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+    margin-bottom: 20px;
+    height: 400px;
+}
+
+.breakdown-item {
+    display: flex;
+    justify-content: between;
+    align-items: center;
+    padding: 15px;
+    border-bottom: 1px solid #f8f9fa;
+    transition: all 0.3s;
+}
+
+.breakdown-item:hover {
+    background: #f8f9fa;
+}
+
+.breakdown-item:last-child {
+    border-bottom: none;
+}
+
+.activity-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 15px;
+    font-size: 1.5rem;
+    color: white;
+}
+
+.icon-planting { background: #4caf50; }
+.icon-fertilizing { background: #ff9800; }
+.icon-pest_control { background: #f44336; }
+.icon-harvesting { background: #9c27b0; }
+.icon-irrigation { background: #2196f3; }
+.icon-other { background: #607d8b; }
+
+.weather-widget {
+    background: linear-gradient(135deg, #00bcd4 0%, #0097a7 100%);
+    color: white;
+    border-radius: 15px;
+    padding: 25px;
+    margin-bottom: 20px;
+}
+
+.cost-breakdown {
+    background: white;
+    border-radius: 15px;
+    padding: 25px;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+    margin-bottom: 20px;
+}
+
+.cost-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.cost-item:last-child {
+    border-bottom: none;
+    font-weight: bold;
+    color: #2e7d32;
+}
+
+.quick-actions {
+    background: white;
+    border-radius: 15px;
+    padding: 25px;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+}
+
+.action-btn {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 10px;
+    text-align: left;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    text-decoration: none;
+    color: #333;
+    transition: all 0.3s;
+}
+
+.action-btn:hover {
+    border-color: #4caf50;
+    background: rgba(76, 175, 80, 0.05);
+    color: #2e7d32;
+}
+
+.overdue-alert {
+    background: #ffebee;
+    border: 1px solid #ffcdd2;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 20px;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: #6c757d;
+}
+
+.empty-state i {
+    font-size: 3rem;
+    margin-bottom: 15px;
+    opacity: 0.5;
+}
+</style>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid px-4 py-4">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="h3 mb-0 text-success">Farm Records Dashboard</h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'dashboard:index' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Farm Records</li>
+                </ol>
+            </nav>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{% url 'activities:activity_create' %}" class="btn btn-success me-2">
+                <i class="material-icons small align-middle">add</i> New Activity
+            </a>
+            <div class="dropdown d-inline">
+                <button class="btn btn-outline-success dropdown-toggle" data-bs-toggle="dropdown">
+                    <i class="material-icons small align-middle">more_vert</i> More
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="{% url 'activities:activity_analytics' %}">
+                        <i class="material-icons small align-middle">analytics</i> Analytics
+                    </a></li>
+                    <li><a class="dropdown-item" href="{% url 'activities:activity_calendar' %}">
+                        <i class="material-icons small align-middle">calendar_today</i> Calendar View
+                    </a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="#">
+                        <i class="material-icons small align-middle">file_download</i> Export Records
+                    </a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Records Header -->
+    <div class="records-header">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h2 class="mb-2">Comprehensive Farm Activity Tracking</h2>
+                <p class="mb-0 opacity-90">
+                    Track all farm activities, monitor performance, and maintain detailed records for better decision making.
+                </p>
+            </div>
+            <div class="col-md-4 text-end">
+                <div class="h1 mb-0">{{ stats.total_activities }}</div>
+                <small class="opacity-75">Total Activities Recorded</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="stat-card">
+                <span class="stat-number">{{ stats.completed_this_month }}</span>
+                <span class="stat-label">Completed This Month</span>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <span class="stat-number">{{ stats.pending_activities }}</span>
+                <span class="stat-label">Pending Activities</span>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <span class="stat-number {% if stats.overdue_count > 0 %}text-danger{% endif %}">{{ stats.overdue_count }}</span>
+                <span class="stat-label">Overdue Activities</span>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <span class="stat-number">₦{{ total_costs.total_labor|add:total_costs.total_material|add:total_costs.total_other|floatformat:0 }}</span>
+                <span class="stat-label">Monthly Costs</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Overdue Alert -->
+    {% if overdue_activities %}
+    <div class="overdue-alert">
+        <div class="d-flex align-items-center">
+            <i class="material-icons text-danger me-2">warning</i>
+            <div>
+                <strong>{{ overdue_activities.count }} Overdue Activities</strong>
+                <p class="mb-0 small">You have activities that are past their planned dates. Please review and update them.</p>
+            </div>
+            <div class="ms-auto">
+                <a href="{% url 'activities:activity_list' %}?status=overdue" class="btn btn-sm btn-outline-danger">
+                    View Overdue
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="row">
+        <!-- Main Content -->
+        <div class="col-lg-8">
+            <!-- Recent Activities -->
+            <div class="chart-container">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="text-success mb-0">
+                        <i class="material-icons align-middle me-2">history</i>
+                        Recent Activities
+                    </h5>
+                    <a href="{% url 'activities:activity_list' %}" class="btn btn-sm btn-outline-success">
+                        View All
+                    </a>
+                </div>
+
+                {% if recent_activities %}
+                    {% for activity in recent_activities %}
+                    <div class="activity-card {{ activity.activity_type }}">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <div class="d-flex align-items-center">
+                                    <div class="activity-icon icon-{{ activity.activity_type }}">
+                                        {% if activity.activity_type == 'planting' %}
+                                            <i class="material-icons">eco</i>
+                                        {% elif activity.activity_type == 'fertilizer' %}
+                                            <i class="material-icons">scatter_plot</i>
+                                        {% elif activity.activity_type == 'pest_control' %}
+                                            <i class="material-icons">bug_report</i>
+                                        {% elif activity.activity_type == 'harvesting' %}
+                                            <i class="material-icons">agriculture</i>
+                                        {% elif activity.activity_type == 'irrigation' %}
+                                            <i class="material-icons">water_drop</i>
+                                        {% else %}
+                                            <i class="material-icons">work</i>
+                                        {% endif %}
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-1">{{ activity.title }}</h6>
+                                        <div class="small text-muted">
+                                            {{ activity.field.name }} • {{ activity.get_activity_type_display }}
+                                            {% if activity.crop_cycle %}
+                                                • {{ activity.crop_cycle.crop.name }}
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="small text-muted">{{ activity.actual_date|date:"M d" }}</div>
+                                <div class="small fw-bold">₦{{ activity.total_cost|floatformat:0 }}</div>
+                            </div>
+                            <div class="col-md-2 text-end">
+                                <span class="status-badge status-{{ activity.status }}">
+                                    {{ activity.get_status_display }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-state">
+                        <i class="material-icons">history</i>
+                        <h6>No Recent Activities</h6>
+                        <p class="mb-0">Start recording farm activities to see them here.</p>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Activity Breakdown Chart -->
+            <div class="chart-container">
+                <h5 class="text-success mb-3">
+                    <i class="material-icons align-middle me-2">pie_chart</i>
+                    Activity Breakdown (Last 30 Days)
+                </h5>
+                <canvas id="activityBreakdownChart"></canvas>
+            </div>
+
+            <!-- Upcoming Activities -->
+            <div class="chart-container">
+                <h5 class="text-success mb-3">
+                    <i class="material-icons align-middle me-2">schedule</i>
+                    Upcoming Activities
+                </h5>
+
+                {% if upcoming_activities %}
+                    {% for activity in upcoming_activities %}
+                    <div class="activity-card {{ activity.activity_type }}">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <div class="d-flex align-items-center">
+                                    <div class="activity-icon icon-{{ activity.activity_type }}">
+                                        {% if activity.activity_type == 'planting' %}
+                                            <i class="material-icons">eco</i>
+                                        {% elif activity.activity_type == 'fertilizer' %}
+                                            <i class="material-icons">scatter_plot</i>
+                                        {% elif activity.activity_type == 'pest_control' %}
+                                            <i class="material-icons">bug_report</i>
+                                        {% elif activity.activity_type == 'harvesting' %}
+                                            <i class="material-icons">agriculture</i>
+                                        {% elif activity.activity_type == 'irrigation' %}
+                                            <i class="material-icons">water_drop</i>
+                                        {% else %}
+                                            <i class="material-icons">work</i>
+                                        {% endif %}
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-1">{{ activity.title }}</h6>
+                                        <div class="small text-muted">
+                                            {{ activity.field.name }} • {{ activity.get_activity_type_display }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="small text-muted">Planned</div>
+                                <div class="small fw-bold">{{ activity.planned_date|date:"M d" }}</div>
+                            </div>
+                            <div class="col-md-2 text-end">
+                                <button class="btn btn-sm btn-success" onclick="quickComplete({{ activity.id }})">
+                                    <i class="material-icons small">check</i> Complete
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-state">
+                        <i class="material-icons">event_available</i>
+                        <h6>No Upcoming Activities</h6>
+                        <p class="mb-0">All planned activities are up to date!</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Cost Breakdown -->
+            <div class="cost-breakdown">
+                <h6 class="text-success mb-3">
+                    <i class="material-icons align-middle me-2">account_balance_wallet</i>
+                    Monthly Cost Breakdown
+                </h6>
+                
+                <div class="cost-item">
+                    <span>Labor Costs</span>
+                    <span class="fw-bold">₦{{ total_costs.total_labor|floatformat:0 }}</span>
+                </div>
+                <div class="cost-item">
+                    <span>Material Costs</span>
+                    <span class="fw-bold">₦{{ total_costs.total_material|floatformat:0 }}</span>
+                </div>
+                <div class="cost-item">
+                    <span>Other Costs</span>
+                    <span class="fw-bold">₦{{ total_costs.total_other|floatformat:0 }}</span>
+                </div>
+                <div class="cost-item">
+                    <span>Total</span>
+                    <span class="fw-bold">₦{{ total_costs.total_labor|add:total_costs.total_material|add:total_costs.total_other|floatformat:0 }}</span>
+                </div>
+            </div>
+
+            <!-- Field Activity Summary -->
+            <div class="cost-breakdown">
+                <h6 class="text-success mb-3">
+                    <i class="material-icons align-middle me-2">map</i>
+                    Top Active Fields
+                </h6>
+                
+                {% for field in field_activity %}
+                <div class="cost-item">
+                    <div>
+                        <div class="fw-bold">{{ field.field__name }}</div>
+                        <small class="text-muted">{{ field.activity_count }} activities</small>
+                    </div>
+                    <span class="fw-bold">₦{{ field.total_cost|floatformat:0 }}</span>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Weather Widget -->
+            {% if weather_data %}
+            <div class="weather-widget">
+                <h6 class="mb-3">
+                    <i class="material-icons align-middle me-2">cloud</i>
+                    Recent Weather Data
+                </h6>
+                <div class="text-center">
+                    <div class="h3 mb-0">25°C</div>
+                    <small class="opacity-75">Average temperature from activities</small>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Quick Actions -->
+            <div class="quick-actions">
+                <h6 class="text-success mb-3">Quick Actions</h6>
+                
+                <a href="{% url 'activities:activity_create' %}" class="action-btn">
+                    <i class="material-icons small align-middle me-2">add</i>
+                    Record New Activity
+                </a>
+                
+                <a href="{% url 'activities:planting_records' %}" class="action-btn">
+                    <i class="material-icons small align-middle me-2">eco</i>
+                    View Planting Records
+                </a>
+                
+                <a href="{% url 'activities:harvest_records' %}" class="action-btn">
+                    <i class="material-icons small align-middle me-2">agriculture</i>
+                    View Harvest Records
+                </a>
+                
+                <a href="{% url 'activities:weather_records' %}" class="action-btn">
+                    <i class="material-icons small align-middle me-2">cloud</i>
+                    Weather Records
+                </a>
+                
+                <a href="{% url 'activities:activity_analytics' %}" class="action-btn">
+                    <i class="material-icons small align-middle me-2">analytics</i>
+                    View Analytics
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Activity Breakdown Chart
+    const ctx = document.getElementById('activityBreakdownChart').getContext('2d');
+    const activityData = [
+        {% for item in activity_breakdown %}
+        {
+            label: '{{ item.activity_type|title }}',
+            value: {{ item.count }},
+            cost: {{ item.total_cost|default:0 }}
+        }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ];
+    
+    const chart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: activityData.map(item => item.label),
+            datasets: [{
+                data: activityData.map(item => item.value),
+                backgroundColor: [
+                    '#4caf50', '#ff9800', '#f44336', '#9c27b0', 
+                    '#2196f3', '#607d8b', '#795548', '#e91e63'
+                ],
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        usePointStyle: true,
+                        padding: 20
+                    }
+                }
+            }
+        }
+    });
+});
+
+function quickComplete(activityId) {
+    if (confirm('Mark this activity as completed?')) {
+        fetch(`/activities/${activityId}/quick-complete/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Failed to update activity');
+            }
+        });
+    }
+}
+</script>
+{% endblock %}

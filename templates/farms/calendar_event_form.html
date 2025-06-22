@@ -1,0 +1,261 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load widget_tweaks %}
+
+{% block title %}{{ title }} - Gitako Farm Management{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid px-4 py-4">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="h3 mb-0 text-success">{{ title }}</h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'dashboard:index' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'farms:crop_calendar' %}">Crop Calendar</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">{{ title }}</li>
+                </ol>
+            </nav>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{% url 'farms:crop_calendar' %}" class="btn btn-outline-secondary">
+                <i class="material-icons small align-middle">arrow_back</i> Back to Calendar
+            </a>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0">
+                    <h5 class="text-success mb-0">Event Details</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        
+                        <!-- Basic Information -->
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label for="{{ form.farm.id_for_label }}" class="form-label">Farm</label>
+                                {{ form.farm|add_class:"form-control" }}
+                                {% if form.farm.errors %}
+                                    <div class="text-danger small">{{ form.farm.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <label for="{{ form.crop_cycle.id_for_label }}" class="form-label">Crop Cycle (Optional)</label>
+                                {{ form.crop_cycle|add_class:"form-control" }}
+                                {% if form.crop_cycle.errors %}
+                                    <div class="text-danger small">{{ form.crop_cycle.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label for="{{ form.event_type.id_for_label }}" class="form-label">Event Type</label>
+                                {{ form.event_type|add_class:"form-control" }}
+                                {% if form.event_type.errors %}
+                                    <div class="text-danger small">{{ form.event_type.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <label for="{{ form.title.id_for_label }}" class="form-label">Title</label>
+                                {{ form.title|add_class:"form-control" }}
+                                {% if form.title.errors %}
+                                    <div class="text-danger small">{{ form.title.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="{{ form.description.id_for_label }}" class="form-label">Description</label>
+                            {{ form.description|add_class:"form-control" }}
+                            {% if form.description.errors %}
+                                <div class="text-danger small">{{ form.description.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Scheduling -->
+                        <h6 class="text-success mb-3">Scheduling</h6>
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label for="{{ form.start_date.id_for_label }}" class="form-label">Start Date</label>
+                                {{ form.start_date|add_class:"form-control" }}
+                                {% if form.start_date.errors %}
+                                    <div class="text-danger small">{{ form.start_date.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <label for="{{ form.end_date.id_for_label }}" class="form-label">End Date (Optional)</label>
+                                {{ form.end_date|add_class:"form-control" }}
+                                {% if form.end_date.errors %}
+                                    <div class="text-danger small">{{ form.end_date.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Recurring Options -->
+                        <div class="row mb-4">
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    {{ form.is_recurring|add_class:"form-check-input" }}
+                                    <label class="form-check-label" for="{{ form.is_recurring.id_for_label }}">
+                                        Recurring Event
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-4" id="recurrence-pattern-group" style="display: none;">
+                                <label for="{{ form.recurrence_pattern.id_for_label }}" class="form-label">Pattern</label>
+                                {{ form.recurrence_pattern|add_class:"form-control" }}
+                            </div>
+                            <div class="col-md-4" id="recurrence-interval-group" style="display: none;">
+                                <label for="{{ form.recurrence_interval.id_for_label }}" class="form-label">Every</label>
+                                {{ form.recurrence_interval|add_class:"form-control" }}
+                            </div>
+                        </div>
+
+                        <!-- Status and Priority -->
+                        <div class="row mb-4">
+                            <div class="col-md-4">
+                                <label for="{{ form.status.id_for_label }}" class="form-label">Status</label>
+                                {{ form.status|add_class:"form-control" }}
+                                {% if form.status.errors %}
+                                    <div class="text-danger small">{{ form.status.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-4">
+                                <label for="{{ form.priority.id_for_label }}" class="form-label">Priority</label>
+                                {{ form.priority|add_class:"form-control" }}
+                                {% if form.priority.errors %}
+                                    <div class="text-danger small">{{ form.priority.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-4">
+                                <label for="{{ form.assigned_to.id_for_label }}" class="form-label">Assign To</label>
+                                {{ form.assigned_to|add_class:"form-control" }}
+                                {% if form.assigned_to.errors %}
+                                    <div class="text-danger small">{{ form.assigned_to.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Weather Dependencies -->
+                        <h6 class="text-success mb-3">Weather Dependencies</h6>
+                        <div class="row mb-4">
+                            <div class="col-md-3">
+                                <div class="form-check">
+                                    {{ form.weather_dependent|add_class:"form-check-input" }}
+                                    <label class="form-check-label" for="{{ form.weather_dependent.id_for_label }}">
+                                        Weather Dependent
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-check">
+                                    {{ form.no_rain_required|add_class:"form-check-input" }}
+                                    <label class="form-check-label" for="{{ form.no_rain_required.id_for_label }}">
+                                        No Rain Required
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-4" id="weather-conditions-group" style="display: none;">
+                            <div class="col-md-4">
+                                <label for="{{ form.min_temperature.id_for_label }}" class="form-label">Min Temperature (°C)</label>
+                                {{ form.min_temperature|add_class:"form-control" }}
+                            </div>
+                            <div class="col-md-4">
+                                <label for="{{ form.max_temperature.id_for_label }}" class="form-label">Max Temperature (°C)</label>
+                                {{ form.max_temperature|add_class:"form-control" }}
+                            </div>
+                            <div class="col-md-4">
+                                <label for="{{ form.max_wind_speed.id_for_label }}" class="form-label">Max Wind Speed (km/h)</label>
+                                {{ form.max_wind_speed|add_class:"form-control" }}
+                            </div>
+                        </div>
+
+                        <!-- Cost Estimation -->
+                        <h6 class="text-success mb-3">Cost Estimation</h6>
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label for="{{ form.estimated_cost.id_for_label }}" class="form-label">Estimated Cost</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">₦</span>
+                                    {{ form.estimated_cost|add_class:"form-control" }}
+                                </div>
+                                {% if form.estimated_cost.errors %}
+                                    <div class="text-danger small">{{ form.estimated_cost.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'farms:crop_calendar' %}" class="btn btn-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-success">
+                                <i class="material-icons small align-middle">save</i> Save Event
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Toggle recurring event options
+    const isRecurringCheckbox = document.getElementById('{{ form.is_recurring.id_for_label }}');
+    const recurrencePatternGroup = document.getElementById('recurrence-pattern-group');
+    const recurrenceIntervalGroup = document.getElementById('recurrence-interval-group');
+    
+    function toggleRecurrenceOptions() {
+        if (isRecurringCheckbox.checked) {
+            recurrencePatternGroup.style.display = 'block';
+            recurrenceIntervalGroup.style.display = 'block';
+        } else {
+            recurrencePatternGroup.style.display = 'none';
+            recurrenceIntervalGroup.style.display = 'none';
+        }
+    }
+    
+    isRecurringCheckbox.addEventListener('change', toggleRecurrenceOptions);
+    toggleRecurrenceOptions(); // Initial call
+    
+    // Toggle weather conditions
+    const weatherDependentCheckbox = document.getElementById('{{ form.weather_dependent.id_for_label }}');
+    const weatherConditionsGroup = document.getElementById('weather-conditions-group');
+    
+    function toggleWeatherConditions() {
+        if (weatherDependentCheckbox.checked) {
+            weatherConditionsGroup.style.display = 'block';
+        } else {
+            weatherConditionsGroup.style.display = 'none';
+        }
+    }
+    
+    weatherDependentCheckbox.addEventListener('change', toggleWeatherConditions);
+    toggleWeatherConditions(); // Initial call
+    
+    // Auto-populate title based on event type
+    const eventTypeSelect = document.getElementById('{{ form.event_type.id_for_label }}');
+    const titleInput = document.getElementById('{{ form.title.id_for_label }}');
+    
+    eventTypeSelect.addEventListener('change', function() {
+        if (!titleInput.value || titleInput.value === titleInput.getAttribute('data-auto-title')) {
+            const eventTypeText = eventTypeSelect.options[eventTypeSelect.selectedIndex].text;
+            if (eventTypeText !== 'Select Event Type') {
+                titleInput.value = eventTypeText;
+                titleInput.setAttribute('data-auto-title', eventTypeText);
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

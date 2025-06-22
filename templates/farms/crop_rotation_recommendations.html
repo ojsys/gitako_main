@@ -1,0 +1,466 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block title %}Crop Rotation Recommendations - Gitako Farm Management{% endblock %}
+
+{% block extra_css %}
+<style>
+.recommendation-card {
+    border-radius: 15px;
+    transition: transform 0.3s, box-shadow 0.3s;
+    border: 2px solid transparent;
+}
+
+.recommendation-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
+    border-color: #00c853;
+}
+
+.field-header {
+    background: linear-gradient(135deg, #00c853 0%, #4caf50 100%);
+    color: white;
+    border-radius: 15px 15px 0 0;
+    padding: 20px;
+}
+
+.crop-timeline {
+    position: relative;
+    padding: 20px 0;
+}
+
+.timeline-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+    position: relative;
+}
+
+.timeline-item:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    left: 15px;
+    top: 40px;
+    width: 2px;
+    height: 30px;
+    background: #e9ecef;
+}
+
+.timeline-marker {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: #00c853;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    margin-right: 15px;
+    position: relative;
+    z-index: 1;
+}
+
+.timeline-marker.past {
+    background: #6c757d;
+}
+
+.timeline-marker.recommended {
+    background: #ff9800;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(255, 152, 0, 0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(255, 152, 0, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(255, 152, 0, 0); }
+}
+
+.crop-card {
+    background: white;
+    border: 1px solid #e9ecef;
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 10px;
+    transition: all 0.3s;
+}
+
+.crop-card:hover {
+    border-color: #00c853;
+    box-shadow: 0 4px 15px rgba(0,200,83,0.1);
+}
+
+.crop-benefits {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 15px;
+    margin-top: 15px;
+}
+
+.benefit-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.benefit-item:last-child {
+    margin-bottom: 0;
+}
+
+.benefit-icon {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 10px;
+    font-size: 12px;
+}
+
+.soil-health { background: #4caf50; color: white; }
+.pest-control { background: #ff9800; color: white; }
+.economic { background: #2196f3; color: white; }
+
+.recommendation-score {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: #00c853;
+    color: white;
+    border-radius: 20px;
+    padding: 5px 15px;
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
+.ai-insights {
+    background: linear-gradient(135deg, #673ab7 0%, #9c27b0 100%);
+    color: white;
+    border-radius: 15px;
+    padding: 25px;
+    margin-bottom: 30px;
+}
+
+.rotation-preview {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin: 20px 0;
+}
+
+.year-block {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    text-align: center;
+    border: 2px solid #e9ecef;
+    transition: all 0.3s;
+}
+
+.year-block:hover {
+    border-color: #00c853;
+    transform: translateY(-3px);
+}
+
+.year-number {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #00c853;
+    margin-bottom: 10px;
+}
+
+.quick-implement {
+    background: rgba(0, 200, 83, 0.1);
+    border: 2px dashed #00c853;
+    border-radius: 15px;
+    padding: 30px;
+    text-align: center;
+    margin-top: 20px;
+}
+</style>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid px-4 py-4">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="h3 mb-0 text-success">Crop Rotation Recommendations</h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'dashboard:index' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'farms:crop_rotation_list' %}">Crop Rotation</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Recommendations</li>
+                </ol>
+            </nav>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{% url 'farms:crop_rotation_create' %}" class="btn btn-success">
+                <i class="material-icons small align-middle">add</i> Create Rotation Plan
+            </a>
+        </div>
+    </div>
+
+    <!-- AI Insights Header -->
+    <div class="ai-insights">
+        <div class="row align-items-center">
+            <div class="col-md-9">
+                <h4 class="mb-2">
+                    <i class="material-icons align-middle me-2">psychology</i>
+                    AI-Powered Rotation Recommendations
+                </h4>
+                <p class="mb-0 opacity-90">
+                    Our intelligent system analyzes your field history, soil conditions, and crop performance to suggest optimal rotation sequences for improved yield and soil health.
+                </p>
+            </div>
+            <div class="col-md-3 text-end">
+                <div class="text-center">
+                    <div class="h2 mb-0">{{ recommendations|length }}</div>
+                    <small class="opacity-75">Fields Analyzed</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if recommendations %}
+        <div class="row">
+            {% for rec in recommendations %}
+            <div class="col-lg-6 mb-4">
+                <div class="card border-0 shadow-sm recommendation-card h-100 position-relative">
+                    <div class="recommendation-score">95% Match</div>
+                    
+                    <div class="field-header">
+                        <h5 class="mb-1">{{ rec.field.name }}</h5>
+                        <p class="mb-0 opacity-75">{{ rec.field.farm.name }} • {{ rec.field.size }} hectares</p>
+                    </div>
+
+                    <div class="card-body">
+                        <!-- Current Crop History -->
+                        <h6 class="text-success mb-3">
+                            <i class="material-icons small align-middle">history</i>
+                            Recent Crop History
+                        </h6>
+                        
+                        {% if rec.recent_crops %}
+                            <div class="crop-timeline">
+                                {% for cycle in rec.recent_crops %}
+                                <div class="timeline-item">
+                                    <div class="timeline-marker past">{{ forloop.counter }}</div>
+                                    <div>
+                                        <strong>{{ cycle.crop.name }}</strong>
+                                        <div class="small text-muted">
+                                            {{ cycle.planting_date|date:"M Y" }} - {{ cycle.actual_harvest_date|date:"M Y"|default:"Present" }}
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="text-center py-3 text-muted">
+                                <i class="material-icons" style="font-size: 2rem;">new_releases</i>
+                                <p class="mb-0">New field - no history available</p>
+                            </div>
+                        {% endif %}
+
+                        <!-- Recommended Crops -->
+                        <h6 class="text-success mb-3 mt-4">
+                            <i class="material-icons small align-middle">lightbulb</i>
+                            Recommended Next Crops
+                        </h6>
+                        
+                        {% for crop in rec.recommended_crops %}
+                        <div class="crop-card">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>{{ crop.name }}</strong>
+                                    {% if crop.scientific_name %}
+                                        <div class="small text-muted">{{ crop.scientific_name }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="text-end">
+                                    <span class="badge bg-success">Recommended</span>
+                                    {% if crop.average_growing_period_days %}
+                                        <div class="small text-muted">{{ crop.average_growing_period_days }} days</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+
+                        <!-- Rotation Benefits -->
+                        <div class="crop-benefits">
+                            <h6 class="text-success mb-3">Why This Rotation?</h6>
+                            <p class="small mb-3">{{ rec.reasoning }}</p>
+                            
+                            <div class="row">
+                                <div class="col-4">
+                                    <div class="benefit-item">
+                                        <div class="benefit-icon soil-health">
+                                            <i class="material-icons" style="font-size: 12px;">eco</i>
+                                        </div>
+                                        <span class="small">Soil Health</span>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="benefit-item">
+                                        <div class="benefit-icon pest-control">
+                                            <i class="material-icons" style="font-size: 12px;">bug_report</i>
+                                        </div>
+                                        <span class="small">Pest Control</span>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="benefit-item">
+                                        <div class="benefit-icon economic">
+                                            <i class="material-icons" style="font-size: 12px;">trending_up</i>
+                                        </div>
+                                        <span class="small">Economic</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 3-Year Rotation Preview -->
+                        <h6 class="text-success mb-3 mt-4">
+                            <i class="material-icons small align-middle">view_timeline</i>
+                            3-Year Rotation Preview
+                        </h6>
+                        
+                        <div class="rotation-preview">
+                            <div class="year-block">
+                                <div class="year-number">Year 1</div>
+                                <div class="small">{{ rec.recommended_crops.0.name|default:"Legumes" }}</div>
+                            </div>
+                            <div class="year-block">
+                                <div class="year-number">Year 2</div>
+                                <div class="small">{{ rec.recommended_crops.1.name|default:"Cereals" }}</div>
+                            </div>
+                            <div class="year-block">
+                                <div class="year-number">Year 3</div>
+                                <div class="small">{{ rec.recommended_crops.2.name|default:"Root Crops" }}</div>
+                            </div>
+                        </div>
+
+                        <!-- Quick Implementation -->
+                        <div class="quick-implement">
+                            <h6 class="text-success mb-2">Ready to Implement?</h6>
+                            <p class="small mb-3">Create a rotation plan based on these recommendations</p>
+                            <a href="{% url 'farms:crop_rotation_create' %}?field={{ rec.field.id }}" class="btn btn-success btn-sm">
+                                <i class="material-icons small align-middle">add</i> Create Rotation Plan
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <!-- No Recommendations Available -->
+        <div class="text-center py-5">
+            <i class="material-icons text-success mb-3" style="font-size: 5rem;">agriculture</i>
+            <h4 class="text-success mb-3">All Fields Have Active Rotation Plans</h4>
+            <p class="text-muted mb-4">
+                Great job! All your fields already have active crop rotation plans. 
+                You can create additional plans or modify existing ones.
+            </p>
+            <div class="d-flex justify-content-center gap-3">
+                <a href="{% url 'farms:crop_rotation_list' %}" class="btn btn-outline-success">
+                    <i class="material-icons small align-middle">list</i> View Existing Plans
+                </a>
+                <a href="{% url 'farms:crop_rotation_create' %}" class="btn btn-success">
+                    <i class="material-icons small align-middle">add</i> Create New Plan
+                </a>
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Educational Section -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0">
+                    <h5 class="text-success mb-0">
+                        <i class="material-icons align-middle me-2">school</i>
+                        Crop Rotation Principles
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="text-center mb-3">
+                                <i class="material-icons text-success mb-2" style="font-size: 3rem;">spa</i>
+                                <h6>Nutrient Management</h6>
+                                <p class="small text-muted">Rotate between nitrogen-fixing legumes and heavy feeders like cereals to maintain soil fertility.</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center mb-3">
+                                <i class="material-icons text-warning mb-2" style="font-size: 3rem;">bug_report</i>
+                                <h6>Pest Control</h6>
+                                <p class="small text-muted">Break pest and disease cycles by rotating between different crop families.</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center mb-3">
+                                <i class="material-icons text-info mb-2" style="font-size: 3rem;">grass</i>
+                                <h6>Soil Structure</h6>
+                                <p class="small text-muted">Alternate between deep-rooted and shallow-rooted crops to improve soil structure.</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center mb-3">
+                                <i class="material-icons text-primary mb-2" style="font-size: 3rem;">trending_up</i>
+                                <h6>Economic Benefits</h6>
+                                <p class="small text-muted">Diversify income sources and reduce market risks through varied crop production.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add entrance animations to recommendation cards
+    const cards = document.querySelectorAll('.recommendation-card');
+    cards.forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        
+        setTimeout(() => {
+            card.style.transition = 'all 0.6s ease';
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, index * 200);
+    });
+    
+    // Animate timeline markers
+    const markers = document.querySelectorAll('.timeline-marker');
+    markers.forEach((marker, index) => {
+        setTimeout(() => {
+            marker.style.animation = 'fadeInScale 0.5s ease forwards';
+        }, index * 100);
+    });
+});
+
+// Add fadeInScale animation
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes fadeInScale {
+        from {
+            opacity: 0;
+            transform: scale(0.5);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+`;
+document.head.appendChild(style);
+</script>
+{% endblock %}

@@ -1,0 +1,590 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block title %}Profitability Dashboard - Gitako Farm Management{% endblock %}
+
+{% block extra_css %}
+<style>
+.analytics-header {
+    background: linear-gradient(135deg, #2196f3 0%, #42a5f5 100%);
+    color: white;
+    border-radius: 15px;
+    padding: 30px;
+    margin-bottom: 30px;
+}
+
+.metric-card {
+    background: white;
+    border-radius: 15px;
+    padding: 25px;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+    border: 1px solid #f0f0f0;
+    transition: all 0.3s;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.metric-card:hover {
+    box-shadow: 0 4px 25px rgba(0,0,0,0.12);
+    border-color: #2196f3;
+}
+
+.metric-number {
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin-bottom: 5px;
+    display: block;
+}
+
+.metric-number.profit {
+    color: #4caf50;
+}
+
+.metric-number.loss {
+    color: #f44336;
+}
+
+.metric-number.neutral {
+    color: #2196f3;
+}
+
+.metric-label {
+    color: #6c757d;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.chart-card {
+    background: white;
+    border-radius: 15px;
+    padding: 25px;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+    margin-bottom: 20px;
+}
+
+.crop-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    border-bottom: 1px solid #f8f9fa;
+    transition: all 0.3s;
+}
+
+.crop-item:hover {
+    background: #f8f9fa;
+}
+
+.crop-item:last-child {
+    border-bottom: none;
+}
+
+.profit-badge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.profit-positive {
+    background: #e8f5e8;
+    color: #2e7d32;
+}
+
+.profit-negative {
+    background: #ffebee;
+    color: #d32f2f;
+}
+
+.alert-card {
+    background: white;
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+    margin-bottom: 15px;
+    border-left: 4px solid transparent;
+}
+
+.alert-critical {
+    border-left-color: #f44336;
+}
+
+.alert-high {
+    border-left-color: #ff9800;
+}
+
+.alert-medium {
+    border-left-color: #2196f3;
+}
+
+.alert-low {
+    border-left-color: #4caf50;
+}
+
+.cost-breakdown {
+    background: white;
+    border-radius: 15px;
+    padding: 25px;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+    margin-bottom: 20px;
+}
+
+.cost-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.cost-item:last-child {
+    border-bottom: none;
+}
+
+.cost-bar {
+    height: 8px;
+    background: #e9ecef;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-top: 5px;
+}
+
+.cost-fill {
+    height: 100%;
+    background: #2196f3;
+    transition: width 0.3s ease;
+}
+
+.field-performance {
+    background: white;
+    border-radius: 15px;
+    padding: 25px;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+    margin-bottom: 20px;
+}
+
+.field-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    border: 1px solid #f0f0f0;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    transition: all 0.3s;
+}
+
+.field-item:hover {
+    border-color: #2196f3;
+    background: rgba(33, 150, 243, 0.05);
+}
+
+.margin-indicator {
+    width: 60px;
+    height: 8px;
+    border-radius: 4px;
+    background: #e9ecef;
+    position: relative;
+    overflow: hidden;
+}
+
+.margin-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #f44336 0%, #ff9800 25%, #4caf50 50%, #2e7d32 100%);
+    transition: width 0.3s ease;
+}
+</style>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid px-4 py-4">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="h3 mb-0 text-primary">Profitability Analytics</h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'dashboard:index' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Analytics</li>
+                </ol>
+            </nav>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{% url 'analytics:create_profitability_analysis' %}" class="btn btn-primary me-2">
+                <i class="material-icons small align-middle">add_chart</i> New Analysis
+            </a>
+            <div class="dropdown d-inline">
+                <button class="btn btn-outline-primary dropdown-toggle" data-bs-toggle="dropdown">
+                    <i class="material-icons small align-middle">analytics</i> Reports
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="{% url 'analytics:crop_profitability_analysis' %}">
+                        <i class="material-icons small align-middle">eco</i> Crop Analysis
+                    </a></li>
+                    <li><a class="dropdown-item" href="{% url 'analytics:field_profitability_analysis' %}">
+                        <i class="material-icons small align-middle">landscape</i> Field Analysis
+                    </a></li>
+                    <li><a class="dropdown-item" href="{% url 'analytics:profitability_reports' %}">
+                        <i class="material-icons small align-middle">assessment</i> Full Reports
+                    </a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Analytics Header -->
+    <div class="analytics-header">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h2 class="mb-2">Farm Profitability Analytics</h2>
+                <p class="mb-0 opacity-90">
+                    Track profits, analyze costs, and optimize your farm's financial performance.
+                </p>
+            </div>
+            <div class="col-md-4 text-end">
+                <div class="h1 mb-0">
+                    {% if total_profit.net_profit > 0 %}
+                        ₦{{ total_profit.net_profit|floatformat:0 }}
+                    {% elif total_profit.net_profit < 0 %}
+                        -₦{{ total_profit.net_profit|floatformat:0|slice:"1:" }}
+                    {% else %}
+                        ₦0
+                    {% endif %}
+                </div>
+                <small class="opacity-75">Net Profit This Year</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Key Metrics -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="metric-card">
+                <span class="metric-number neutral">₦{{ total_profit.total_revenue|floatformat:0|default:0 }}</span>
+                <span class="metric-label">Total Revenue</span>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="metric-card">
+                <span class="metric-number neutral">₦{{ total_profit.total_costs|floatformat:0|default:0 }}</span>
+                <span class="metric-label">Total Costs</span>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="metric-card">
+                <span class="metric-number {% if total_profit.net_profit > 0 %}profit{% elif total_profit.net_profit < 0 %}loss{% else %}neutral{% endif %}">
+                    {% if total_profit.net_profit > 0 %}
+                        ₦{{ total_profit.net_profit|floatformat:0 }}
+                    {% elif total_profit.net_profit < 0 %}
+                        -₦{{ total_profit.net_profit|floatformat:0|slice:"1:" }}
+                    {% else %}
+                        ₦0
+                    {% endif %}
+                </span>
+                <span class="metric-label">Net Profit</span>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="metric-card">
+                <span class="metric-number neutral">{{ recent_analyses|length }}</span>
+                <span class="metric-label">Analyses This Year</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Main Content -->
+        <div class="col-lg-8">
+            <!-- Monthly Profit Trends Chart -->
+            <div class="chart-card">
+                <h5 class="text-primary mb-4">
+                    <i class="material-icons align-middle me-2">trending_up</i>
+                    Monthly Profit Trends
+                </h5>
+                <canvas id="profitTrendsChart" height="300"></canvas>
+            </div>
+
+            <!-- Most Profitable Crops -->
+            <div class="chart-card">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="text-primary mb-0">
+                        <i class="material-icons align-middle me-2">eco</i>
+                        Most Profitable Crops
+                    </h5>
+                    <a href="{% url 'analytics:crop_profitability_analysis' %}" class="btn btn-sm btn-outline-primary">View Details</a>
+                </div>
+
+                {% if profitable_crops %}
+                    {% for crop in profitable_crops %}
+                    <div class="crop-item">
+                        <div class="d-flex align-items-center flex-grow-1">
+                            <div class="me-3">
+                                <i class="material-icons text-success">eco</i>
+                            </div>
+                            <div>
+                                <h6 class="mb-1">{{ crop.crop__name }}</h6>
+                                <div class="small text-muted">{{ crop.total_yield|floatformat:1 }} tons total yield</div>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <div class="fw-bold text-success">₦{{ crop.total_profit|floatformat:0 }}</div>
+                            <span class="profit-badge profit-positive">{{ crop.avg_margin|floatformat:1 }}% margin</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="material-icons text-muted" style="font-size: 3rem;">eco</i>
+                        <h6 class="text-muted mt-2">No Profitable Crops Data</h6>
+                        <p class="text-muted">Create crop analyses to see profitability rankings.</p>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Loss-Making Crops (if any) -->
+            {% if loss_making_crops %}
+            <div class="chart-card">
+                <h5 class="text-danger mb-4">
+                    <i class="material-icons align-middle me-2">warning</i>
+                    Crops Needing Attention
+                </h5>
+
+                {% for crop in loss_making_crops %}
+                <div class="crop-item">
+                    <div class="d-flex align-items-center flex-grow-1">
+                        <div class="me-3">
+                            <i class="material-icons text-danger">priority_high</i>
+                        </div>
+                        <div>
+                            <h6 class="mb-1">{{ crop.crop__name }}</h6>
+                            <div class="small text-muted">Needs cost optimization</div>
+                        </div>
+                    </div>
+                    <div class="text-end">
+                        <div class="fw-bold text-danger">₦{{ crop.total_loss|floatformat:0 }}</div>
+                        <span class="profit-badge profit-negative">{{ crop.avg_margin|floatformat:1 }}% margin</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Active Alerts -->
+            {% if active_alerts %}
+            <div class="mb-4">
+                <h6 class="text-primary mb-3">
+                    <i class="material-icons align-middle me-2">notifications</i>
+                    Active Alerts
+                </h6>
+                
+                {% for alert in active_alerts %}
+                <div class="alert-card alert-{{ alert.severity }}">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <strong class="text-{{ alert.severity }}">{{ alert.get_alert_type_display }}</strong>
+                        <span class="badge bg-{{ alert.severity }}">{{ alert.severity|title }}</span>
+                    </div>
+                    <p class="mb-2 small">{{ alert.message|truncatewords:15 }}</p>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-outline-secondary" onclick="acknowledgeAlert({{ alert.id }})">
+                            Acknowledge
+                        </button>
+                        <button class="btn btn-sm btn-outline-success" onclick="resolveAlert({{ alert.id }})">
+                            Resolve
+                        </button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Cost Breakdown -->
+            <div class="cost-breakdown">
+                <h6 class="text-primary mb-3">
+                    <i class="material-icons align-middle me-2">pie_chart</i>
+                    Cost Breakdown
+                </h6>
+                
+                {% if cost_breakdown.total_seed_costs or cost_breakdown.total_fertilizer_costs %}
+                    <div class="cost-item">
+                        <span>Seeds</span>
+                        <span class="fw-bold">₦{{ cost_breakdown.total_seed_costs|floatformat:0|default:0 }}</span>
+                    </div>
+                    <div class="cost-item">
+                        <span>Fertilizers</span>
+                        <span class="fw-bold">₦{{ cost_breakdown.total_fertilizer_costs|floatformat:0|default:0 }}</span>
+                    </div>
+                    <div class="cost-item">
+                        <span>Pesticides</span>
+                        <span class="fw-bold">₦{{ cost_breakdown.total_pesticide_costs|floatformat:0|default:0 }}</span>
+                    </div>
+                    <div class="cost-item">
+                        <span>Labor</span>
+                        <span class="fw-bold">₦{{ cost_breakdown.total_labor_costs|floatformat:0|default:0 }}</span>
+                    </div>
+                    <div class="cost-item">
+                        <span>Equipment</span>
+                        <span class="fw-bold">₦{{ cost_breakdown.total_equipment_costs|floatformat:0|default:0 }}</span>
+                    </div>
+                    <div class="cost-item">
+                        <span>Other</span>
+                        <span class="fw-bold">₦{{ cost_breakdown.total_other_costs|floatformat:0|default:0 }}</span>
+                    </div>
+                {% else %}
+                    <div class="text-center py-3">
+                        <i class="material-icons text-muted">pie_chart</i>
+                        <p class="text-muted small mb-0">No cost data available</p>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Field Performance -->
+            <div class="field-performance">
+                <h6 class="text-primary mb-3">
+                    <i class="material-icons align-middle me-2">landscape</i>
+                    Top Performing Fields
+                </h6>
+                
+                {% if field_performance %}
+                    {% for field_analysis in field_performance %}
+                    <div class="field-item">
+                        <div>
+                            <div class="fw-bold">{{ field_analysis.field.name }}</div>
+                            <small class="text-muted">{{ field_analysis.area_planted }} hectares</small>
+                        </div>
+                        <div class="text-end">
+                            <div class="fw-bold text-success">{{ field_analysis.profit_margin|floatformat:1 }}%</div>
+                            <div class="margin-indicator">
+                                <div class="margin-fill" style="width: {{ field_analysis.profit_margin|default:0 }}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center py-3">
+                        <i class="material-icons text-muted">landscape</i>
+                        <p class="text-muted small mb-0">No field analyses available</p>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="cost-breakdown">
+                <h6 class="text-primary mb-3">Quick Actions</h6>
+                
+                <a href="{% url 'analytics:create_profitability_analysis' %}" class="btn btn-outline-primary w-100 mb-2">
+                    <i class="material-icons small align-middle me-2">add_chart</i>
+                    New Analysis
+                </a>
+                
+                <a href="{% url 'analytics:crop_profitability_analysis' %}" class="btn btn-outline-primary w-100 mb-2">
+                    <i class="material-icons small align-middle me-2">eco</i>
+                    Crop Analysis
+                </a>
+                
+                <a href="{% url 'analytics:profitability_reports' %}" class="btn btn-outline-primary w-100">
+                    <i class="material-icons small align-middle me-2">assessment</i>
+                    Full Reports
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Monthly Profit Trends Chart
+const monthlyTrends = {{ monthly_trends|safe }};
+const ctx = document.getElementById('profitTrendsChart').getContext('2d');
+
+const profitChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: monthlyTrends.map(item => {
+            const date = new Date(item.month);
+            return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+        }),
+        datasets: [{
+            label: 'Profit',
+            data: monthlyTrends.map(item => item.total_profit),
+            borderColor: '#4caf50',
+            backgroundColor: 'rgba(76, 175, 80, 0.1)',
+            fill: true,
+            tension: 0.4
+        }, {
+            label: 'Revenue',
+            data: monthlyTrends.map(item => item.total_revenue),
+            borderColor: '#2196f3',
+            backgroundColor: 'rgba(33, 150, 243, 0.1)',
+            fill: false,
+            tension: 0.4
+        }, {
+            label: 'Costs',
+            data: monthlyTrends.map(item => item.total_costs),
+            borderColor: '#ff9800',
+            backgroundColor: 'rgba(255, 152, 0, 0.1)',
+            fill: false,
+            tension: 0.4
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'top',
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    callback: function(value) {
+                        return '₦' + value.toLocaleString();
+                    }
+                }
+            }
+        }
+    }
+});
+
+// Alert management functions
+function acknowledgeAlert(alertId) {
+    fetch(`/analytics/update-alert/${alertId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: 'action=acknowledge'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        }
+    });
+}
+
+function resolveAlert(alertId) {
+    fetch(`/analytics/update-alert/${alertId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: 'action=resolve'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        }
+    });
+}
+</script>
+{% endblock %}

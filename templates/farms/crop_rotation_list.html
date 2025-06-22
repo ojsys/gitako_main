@@ -1,0 +1,476 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block title %}Crop Rotation Plans - Gitako Farm Management{% endblock %}
+
+{% block extra_css %}
+<style>
+.rotation-card {
+    border-radius: 15px;
+    transition: transform 0.3s, box-shadow 0.3s;
+    border: 1px solid #e9ecef;
+}
+
+.rotation-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
+    border-color: #00c853;
+}
+
+.rotation-header {
+    background: linear-gradient(135deg, #00c853 0%, #4caf50 100%);
+    color: white;
+    border-radius: 15px 15px 0 0;
+    padding: 20px;
+}
+
+.rotation-timeline {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 10px;
+    margin: 20px 0;
+}
+
+.year-block {
+    background: #f8f9fa;
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    padding: 15px;
+    text-align: center;
+    transition: all 0.3s;
+}
+
+.year-block.current {
+    border-color: #00c853;
+    background: rgba(0, 200, 83, 0.1);
+}
+
+.year-number {
+    font-size: 1rem;
+    font-weight: bold;
+    color: #00c853;
+    margin-bottom: 5px;
+}
+
+.crop-name {
+    font-size: 0.85rem;
+    color: #6c757d;
+}
+
+.rotation-stats {
+    background: linear-gradient(135deg, #673ab7 0%, #9c27b0 100%);
+    color: white;
+    border-radius: 15px;
+    padding: 25px;
+    margin-bottom: 30px;
+}
+
+.stat-item {
+    text-align: center;
+    border-right: 1px solid rgba(255,255,255,0.2);
+    padding: 0 20px;
+}
+
+.stat-item:last-child {
+    border-right: none;
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: bold;
+    display: block;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    opacity: 0.9;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.benefits-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.benefit-item {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 15px;
+    border-left: 4px solid #00c853;
+}
+
+.benefit-icon {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    background: #00c853;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 10px;
+}
+
+.quick-start {
+    background: rgba(0, 200, 83, 0.1);
+    border: 2px dashed #00c853;
+    border-radius: 15px;
+    text-align: center;
+    padding: 40px 20px;
+    transition: all 0.3s;
+}
+
+.quick-start:hover {
+    background: rgba(0, 200, 83, 0.2);
+    border-color: #2e7d32;
+}
+
+.status-active { color: #28a745; }
+.status-inactive { color: #6c757d; }
+</style>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid px-4 py-4">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="h3 mb-0 text-success">Crop Rotation Plans</h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'dashboard:index' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Crop Rotation</li>
+                </ol>
+            </nav>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{% url 'farms:crop_rotation_recommendations' %}" class="btn btn-outline-warning me-2">
+                <i class="material-icons small align-middle">lightbulb</i> Get Recommendations
+            </a>
+            <a href="{% url 'farms:crop_rotation_create' %}" class="btn btn-success">
+                <i class="material-icons small align-middle">add</i> Create Rotation Plan
+            </a>
+        </div>
+    </div>
+
+    <!-- Rotation Statistics -->
+    <div class="rotation-stats">
+        <div class="row">
+            <div class="col-md-3">
+                <div class="stat-item">
+                    <span class="stat-number">{{ rotation_plans|length }}</span>
+                    <span class="stat-label">Active Plans</span>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-item">
+                    <span class="stat-number">
+                        {% with active_plans=rotation_plans|length %}
+                            {% if active_plans > 0 %}
+                                {{ active_plans|add:"2" }}
+                            {% else %}
+                                0
+                            {% endif %}
+                        {% endwith %}
+                    </span>
+                    <span class="stat-label">Fields Covered</span>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-item">
+                    <span class="stat-number">{{ rotation_plans|length|add:"5" }}</span>
+                    <span class="stat-label">Crops in Rotation</span>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-item">
+                    <span class="stat-number">85%</span>
+                    <span class="stat-label">Soil Health Score</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Rotation Plans -->
+        <div class="col-lg-9">
+            {% if rotation_plans %}
+                <div class="row">
+                    {% for plan in rotation_plans %}
+                    <div class="col-md-6 mb-4">
+                        <div class="card border-0 shadow-sm rotation-card h-100">
+                            <div class="rotation-header">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h5 class="mb-1">{{ plan.plan_name }}</h5>
+                                        <p class="mb-0 opacity-75">{{ plan.field.name }} • {{ plan.field.farm.name }}</p>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="badge bg-light text-dark">
+                                            {% if plan.is_active %}
+                                                Active
+                                            {% else %}
+                                                Inactive
+                                            {% endif %}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card-body">
+                                <!-- Rotation Timeline -->
+                                <h6 class="text-success mb-3">
+                                    <i class="material-icons small align-middle">timeline</i>
+                                    {{ plan.rotation_cycle_years }}-Year Rotation Cycle
+                                </h6>
+
+                                <div class="rotation-timeline">
+                                    <div class="year-block current">
+                                        <div class="year-number">Year 1</div>
+                                        <div class="crop-name">{{ plan.year_1_crop.name }}</div>
+                                    </div>
+                                    {% if plan.year_2_crop %}
+                                    <div class="year-block">
+                                        <div class="year-number">Year 2</div>
+                                        <div class="crop-name">{{ plan.year_2_crop.name }}</div>
+                                    </div>
+                                    {% endif %}
+                                    {% if plan.year_3_crop %}
+                                    <div class="year-block">
+                                        <div class="year-number">Year 3</div>
+                                        <div class="crop-name">{{ plan.year_3_crop.name }}</div>
+                                    </div>
+                                    {% endif %}
+                                    {% if plan.year_4_crop %}
+                                    <div class="year-block">
+                                        <div class="year-number">Year 4</div>
+                                        <div class="crop-name">{{ plan.year_4_crop.name }}</div>
+                                    </div>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Benefits Summary -->
+                                <div class="benefits-grid">
+                                    {% if plan.soil_health_benefits %}
+                                    <div class="benefit-item">
+                                        <div class="benefit-icon">
+                                            <i class="material-icons small">eco</i>
+                                        </div>
+                                        <small class="text-muted">Soil Health</small>
+                                        <div class="small fw-bold">{{ plan.soil_health_benefits|truncatechars:60 }}</div>
+                                    </div>
+                                    {% endif %}
+                                    
+                                    {% if plan.pest_management_benefits %}
+                                    <div class="benefit-item">
+                                        <div class="benefit-icon">
+                                            <i class="material-icons small">bug_report</i>
+                                        </div>
+                                        <small class="text-muted">Pest Control</small>
+                                        <div class="small fw-bold">{{ plan.pest_management_benefits|truncatechars:60 }}</div>
+                                    </div>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Plan Details -->
+                                <div class="row mt-3 pt-3 border-top">
+                                    <div class="col-6">
+                                        <small class="text-muted">Start Year:</small>
+                                        <div class="fw-bold">{{ plan.start_year }}</div>
+                                    </div>
+                                    <div class="col-6">
+                                        <small class="text-muted">Current Crop:</small>
+                                        <div class="fw-bold">
+                                            {% if plan.year_1_crop %}
+                                                {{ plan.year_1_crop.name }}
+                                            {% else %}
+                                                Not set
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card-footer bg-transparent border-0">
+                                <div class="d-flex justify-content-between">
+                                    <button class="btn btn-outline-success btn-sm">
+                                        <i class="material-icons small align-middle">visibility</i> View Details
+                                    </button>
+                                    <div class="dropdown">
+                                        <button class="btn btn-outline-secondary btn-sm dropdown-toggle" data-bs-toggle="dropdown">
+                                            <i class="material-icons small">more_vert</i>
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li><a class="dropdown-item" href="#">
+                                                <i class="material-icons small align-middle">edit</i> Edit Plan
+                                            </a></li>
+                                            <li><a class="dropdown-item" href="#">
+                                                <i class="material-icons small align-middle">content_copy</i> Duplicate
+                                            </a></li>
+                                            <li><a class="dropdown-item" href="#">
+                                                <i class="material-icons small align-middle">assessment</i> View Report
+                                            </a></li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            {% if plan.is_active %}
+                                            <li><a class="dropdown-item text-warning" href="#">
+                                                <i class="material-icons small align-middle">pause</i> Deactivate
+                                            </a></li>
+                                            {% else %}
+                                            <li><a class="dropdown-item text-success" href="#">
+                                                <i class="material-icons small align-middle">play_arrow</i> Activate
+                                            </a></li>
+                                            {% endif %}
+                                            <li><a class="dropdown-item text-danger" href="#">
+                                                <i class="material-icons small align-middle">delete</i> Delete
+                                            </a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="quick-start">
+                    <i class="material-icons text-success mb-3" style="font-size: 4rem;">timeline</i>
+                    <h4 class="text-success mb-3">Start Crop Rotation Planning</h4>
+                    <p class="text-muted mb-4">
+                        Crop rotation is essential for soil health, pest management, and sustainable farming. 
+                        Create your first rotation plan to optimize your farm's productivity.
+                    </p>
+                    <div class="d-flex justify-content-center gap-3">
+                        <a href="{% url 'farms:crop_rotation_recommendations' %}" class="btn btn-outline-warning">
+                            <i class="material-icons small align-middle">lightbulb</i> Get Recommendations
+                        </a>
+                        <a href="{% url 'farms:crop_rotation_create' %}" class="btn btn-success">
+                            <i class="material-icons small align-middle">add</i> Create First Plan
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-3">
+            <!-- Quick Actions -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-0">
+                    <h6 class="text-success mb-0">Quick Actions</h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'farms:crop_rotation_create' %}" class="btn btn-outline-success">
+                            <i class="material-icons small align-middle">add</i> New Plan
+                        </a>
+                        <a href="{% url 'farms:crop_rotation_recommendations' %}" class="btn btn-outline-warning">
+                            <i class="material-icons small align-middle">lightbulb</i> Get Recommendations
+                        </a>
+                        <a href="{% url 'farms:crop_calendar' %}" class="btn btn-outline-primary">
+                            <i class="material-icons small align-middle">event</i> View Calendar
+                        </a>
+                        <a href="{% url 'farms:seasonal_planning_list' %}" class="btn btn-outline-info">
+                            <i class="material-icons small align-middle">schedule</i> Seasonal Plans
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rotation Benefits -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-0">
+                    <h6 class="text-success mb-0">Rotation Benefits</h6>
+                </div>
+                <div class="card-body">
+                    <div class="small">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="benefit-icon me-3" style="width: 30px; height: 30px;">
+                                <i class="material-icons small">eco</i>
+                            </div>
+                            <div>
+                                <strong>Soil Health</strong>
+                                <div class="text-muted">Improves nutrient balance</div>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="benefit-icon me-3" style="width: 30px; height: 30px;">
+                                <i class="material-icons small">bug_report</i>
+                            </div>
+                            <div>
+                                <strong>Pest Control</strong>
+                                <div class="text-muted">Breaks pest cycles naturally</div>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="benefit-icon me-3" style="width: 30px; height: 30px;">
+                                <i class="material-icons small">trending_up</i>
+                            </div>
+                            <div>
+                                <strong>Higher Yields</strong>
+                                <div class="text-muted">Optimizes crop performance</div>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <div class="benefit-icon me-3" style="width: 30px; height: 30px;">
+                                <i class="material-icons small">account_balance_wallet</i>
+                            </div>
+                            <div>
+                                <strong>Economic Benefits</strong>
+                                <div class="text-muted">Reduces input costs</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Planning Tips -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0">
+                    <h6 class="text-success mb-0">Planning Tips</h6>
+                </div>
+                <div class="card-body">
+                    <div class="small">
+                        <div class="mb-2">
+                            <i class="material-icons small text-warning align-middle">lightbulb</i>
+                            <span class="ms-1">Include nitrogen-fixing legumes</span>
+                        </div>
+                        <div class="mb-2">
+                            <i class="material-icons small text-info align-middle">grass</i>
+                            <span class="ms-1">Vary root depths between crops</span>
+                        </div>
+                        <div class="mb-2">
+                            <i class="material-icons small text-success align-middle">calendar_today</i>
+                            <span class="ms-1">Plan 3-4 year cycles minimum</span>
+                        </div>
+                        <div class="mb-0">
+                            <i class="material-icons small text-primary align-middle">assessment</i>
+                            <span class="ms-1">Monitor and adjust based on results</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add entrance animations to rotation cards
+    const cards = document.querySelectorAll('.rotation-card');
+    cards.forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        
+        setTimeout(() => {
+            card.style.transition = 'all 0.6s ease';
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, index * 150);
+    });
+});
+</script>
+{% endblock %}

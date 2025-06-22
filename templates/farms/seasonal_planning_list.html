@@ -1,0 +1,362 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block title %}Seasonal Planning - Gitako Farm Management{% endblock %}
+
+{% block extra_css %}
+<style>
+.season-card {
+    border-radius: 15px;
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.season-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
+}
+
+.season-badge {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    font-size: 0.8rem;
+}
+
+.season-spring {
+    background: linear-gradient(135deg, #4caf50 0%, #81c784 100%);
+}
+
+.season-summer {
+    background: linear-gradient(135deg, #ff9800 0%, #ffb74d 100%);
+}
+
+.season-fall {
+    background: linear-gradient(135deg, #f44336 0%, #ef5350 100%);
+}
+
+.season-winter {
+    background: linear-gradient(135deg, #2196f3 0%, #64b5f6 100%);
+}
+
+.season-wet {
+    background: linear-gradient(135deg, #00bcd4 0%, #4dd0e1 100%);
+}
+
+.season-dry {
+    background: linear-gradient(135deg, #ff5722 0%, #ff8a65 100%);
+}
+
+.planning-stats {
+    background: linear-gradient(135deg, #00c853 0%, #4caf50 100%);
+    color: white;
+    border-radius: 15px;
+}
+
+.stat-item {
+    text-align: center;
+    padding: 20px;
+}
+
+.stat-number {
+    font-size: 2.5rem;
+    font-weight: bold;
+    display: block;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    opacity: 0.9;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.quick-actions {
+    background: rgba(0, 200, 83, 0.1);
+    border: 2px dashed #00c853;
+    border-radius: 15px;
+    text-align: center;
+    padding: 40px 20px;
+    transition: all 0.3s;
+}
+
+.quick-actions:hover {
+    background: rgba(0, 200, 83, 0.2);
+    border-color: #2e7d32;
+}
+
+.progress-ring {
+    width: 60px;
+    height: 60px;
+}
+
+.progress-ring circle {
+    transition: stroke-dashoffset 0.6s ease-in-out;
+}
+</style>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid px-4 py-4">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="h3 mb-0 text-success">Seasonal Planning</h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'dashboard:index' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Seasonal Planning</li>
+                </ol>
+            </nav>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{% url 'farms:seasonal_planning_create' %}" class="btn btn-success">
+                <i class="material-icons small align-middle">add</i> Create Seasonal Plan
+            </a>
+        </div>
+    </div>
+
+    <!-- Planning Statistics -->
+    <div class="planning-stats mb-4">
+        <div class="row">
+            <div class="col-md-3">
+                <div class="stat-item border-end">
+                    <span class="stat-number">{{ seasonal_plans|length }}</span>
+                    <span class="stat-label">Total Plans</span>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-item border-end">
+                    <span class="stat-number">
+                        {% with active_plans=seasonal_plans|length %}
+                            {% if active_plans > 0 %}
+                                {{ active_plans }}
+                            {% else %}
+                                0
+                            {% endif %}
+                        {% endwith %}
+                    </span>
+                    <span class="stat-label">Active Plans</span>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-item border-end">
+                    <span class="stat-number">₦245K</span>
+                    <span class="stat-label">Planned Revenue</span>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-item">
+                    <span class="stat-number">85%</span>
+                    <span class="stat-label">Completion Rate</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Seasonal Plans -->
+        <div class="col-lg-9">
+            {% if seasonal_plans %}
+                <div class="row">
+                    {% for plan in seasonal_plans %}
+                    <div class="col-md-6 col-lg-4 mb-4">
+                        <div class="card border-0 shadow-sm season-card season-{{ plan.season }} text-white h-100 position-relative">
+                            <span class="season-badge badge bg-dark bg-opacity-25">
+                                {{ plan.get_status_display }}
+                            </span>
+                            
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <div>
+                                        <h5 class="card-title mb-1">{{ plan.field.name }}</h5>
+                                        <p class="card-text opacity-75 mb-0">{{ plan.farm.name }}</p>
+                                    </div>
+                                    <div class="text-end">
+                                        <div class="progress-ring">
+                                            <svg class="progress-ring" width="60" height="60">
+                                                <circle
+                                                    stroke="rgba(255,255,255,0.3)"
+                                                    stroke-width="4"
+                                                    fill="transparent"
+                                                    r="26"
+                                                    cx="30"
+                                                    cy="30"/>
+                                                <circle
+                                                    stroke="white"
+                                                    stroke-width="4"
+                                                    fill="transparent"
+                                                    r="26"
+                                                    cx="30"
+                                                    cy="30"
+                                                    stroke-dasharray="163.36"
+                                                    stroke-dashoffset="49"/>
+                                            </svg>
+                                            <div class="position-absolute top-50 start-50 translate-middle">
+                                                <small class="fw-bold">70%</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row text-center mb-3">
+                                    <div class="col-6">
+                                        <div class="border-end">
+                                            <div class="h6 mb-0">{{ plan.get_season_display }}</div>
+                                            <small class="opacity-75">{{ plan.season_year }}</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="h6 mb-0">
+                                            {% if plan.estimated_revenue %}
+                                                ₦{{ plan.estimated_revenue|floatformat:0 }}
+                                            {% else %}
+                                                -
+                                            {% endif %}
+                                        </div>
+                                        <small class="opacity-75">Est. Revenue</small>
+                                    </div>
+                                </div>
+
+                                <!-- Crop Preview -->
+                                <div class="mb-3">
+                                    <small class="opacity-75 d-block mb-1">Planned Crops:</small>
+                                    <div class="d-flex flex-wrap gap-1">
+                                        {% for crop in plan.planned_crops.all|slice:":3" %}
+                                            <span class="badge bg-dark bg-opacity-25 rounded-pill">{{ crop.name }}</span>
+                                        {% empty %}
+                                            <span class="badge bg-dark bg-opacity-25 rounded-pill">No crops yet</span>
+                                        {% endfor %}
+                                        {% if plan.planned_crops.count > 3 %}
+                                            <span class="badge bg-dark bg-opacity-25 rounded-pill">+{{ plan.planned_crops.count|add:"-3" }} more</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card-footer bg-transparent border-0">
+                                <div class="d-flex justify-content-between">
+                                    <a href="{% url 'farms:seasonal_planning_detail' plan.id %}" class="btn btn-light btn-sm">
+                                        <i class="material-icons small align-middle">visibility</i> View
+                                    </a>
+                                    <div class="dropdown">
+                                        <button class="btn btn-light btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                            <i class="material-icons small">more_vert</i>
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li><a class="dropdown-item" href="#">Edit Plan</a></li>
+                                            <li><a class="dropdown-item" href="#">Duplicate</a></li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li><a class="dropdown-item text-danger" href="#">Archive</a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="quick-actions">
+                    <i class="material-icons text-success mb-3" style="font-size: 4rem;">schedule</i>
+                    <h4 class="text-success mb-3">Start Your Seasonal Planning</h4>
+                    <p class="text-muted mb-4">Plan your crops for different seasons to maximize yield and profitability. Create your first seasonal plan to get started.</p>
+                    <a href="{% url 'farms:seasonal_planning_create' %}" class="btn btn-success btn-lg">
+                        <i class="material-icons small align-middle">add</i> Create Your First Plan
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-3">
+            <!-- Quick Actions -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-0">
+                    <h6 class="text-success mb-0">Quick Actions</h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'farms:seasonal_planning_create' %}" class="btn btn-outline-success">
+                            <i class="material-icons small align-middle">add</i> New Plan
+                        </a>
+                        <a href="{% url 'farms:crop_calendar' %}" class="btn btn-outline-primary">
+                            <i class="material-icons small align-middle">event</i> View Calendar
+                        </a>
+                        <a href="{% url 'farms:crop_rotation_recommendations' %}" class="btn btn-outline-warning">
+                            <i class="material-icons small align-middle">lightbulb</i> Get Recommendations
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Season Guide -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-0">
+                    <h6 class="text-success mb-0">Seasonal Guide</h6>
+                </div>
+                <div class="card-body">
+                    <div class="small mb-3">
+                        <div class="d-flex align-items-center mb-2">
+                            <div class="rounded-circle me-2" style="width: 12px; height: 12px; background: #4caf50;"></div>
+                            <strong>Spring:</strong> Planting season
+                        </div>
+                        <div class="d-flex align-items-center mb-2">
+                            <div class="rounded-circle me-2" style="width: 12px; height: 12px; background: #ff9800;"></div>
+                            <strong>Summer:</strong> Growth & care
+                        </div>
+                        <div class="d-flex align-items-center mb-2">
+                            <div class="rounded-circle me-2" style="width: 12px; height: 12px; background: #f44336;"></div>
+                            <strong>Fall:</strong> Harvest time
+                        </div>
+                        <div class="d-flex align-items-center mb-2">
+                            <div class="rounded-circle me-2" style="width: 12px; height: 12px; background: #2196f3;"></div>
+                            <strong>Winter:</strong> Soil preparation
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Planning Tips -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0">
+                    <h6 class="text-success mb-0">Planning Tips</h6>
+                </div>
+                <div class="card-body">
+                    <div class="small">
+                        <div class="mb-2">
+                            <i class="material-icons small text-warning align-middle">lightbulb</i>
+                            <span class="ms-1">Plan 3-6 months ahead for best results</span>
+                        </div>
+                        <div class="mb-2">
+                            <i class="material-icons small text-info align-middle">water_drop</i>
+                            <span class="ms-1">Consider water availability for each season</span>
+                        </div>
+                        <div class="mb-2">
+                            <i class="material-icons small text-success align-middle">trending_up</i>
+                            <span class="ms-1">Rotate crops to maintain soil health</span>
+                        </div>
+                        <div class="mb-0">
+                            <i class="material-icons small text-primary align-middle">assessment</i>
+                            <span class="ms-1">Track performance for future planning</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Animate progress rings
+    const progressRings = document.querySelectorAll('.progress-ring circle:last-child');
+    progressRings.forEach(ring => {
+        const percent = Math.random() * 80 + 20; // Random percentage for demo
+        const circumference = 2 * Math.PI * 26;
+        const offset = circumference - (percent / 100) * circumference;
+        ring.style.strokeDashoffset = offset;
+    });
+});
+</script>
+{% endblock %}

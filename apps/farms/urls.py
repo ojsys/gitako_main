@@ -25,7 +25,32 @@ urlpatterns = [
     path('crop-cycles/<int:pk>/edit/', views.crop_cycle_edit, name='crop_cycle_edit'),
     path('crop-cycles/<int:pk>/delete/', views.crop_cycle_delete, name='crop_cycle_delete'),
     path('crop-dashboard/', views.crop_dashboard, name='crop_dashboard'), # Overview dashboard
-    path('crop-dashboard/<int:crop_cycle_id>/', views.crop_dashboard, name='crop_dashboard_detail'), # Specific crop cycle dashboard
+    
+
+    # Crop Calendar URLs
+    path('calendar/', views.crop_calendar_view, name='crop_calendar'),
+    path('calendar/event/add/', views.crop_calendar_create, name='crop_calendar_create'),
+    path('calendar/event/<int:event_id>/edit/', views.crop_calendar_edit, name='crop_calendar_edit'),
+    path('calendar/event/<int:event_id>/delete/', views.crop_calendar_delete, name='crop_calendar_delete'),
+    path('calendar/event/<int:event_id>/complete/', views.crop_calendar_complete, name='crop_calendar_complete'),
+    
+    # Excel Template and Bulk Upload URLs
+    path('calendar/download-template/', views.crop_calendar_download_template, name='crop_calendar_download_template'),
+    path('calendar/bulk-upload/', views.crop_calendar_bulk_upload, name='crop_calendar_bulk_upload'),
+    
+    # Seasonal Planning URLs
+    path('planning/', views.seasonal_planning_list, name='seasonal_planning_list'),
+    path('planning/add/', views.seasonal_planning_create, name='seasonal_planning_create'),
+    path('planning/<int:plan_id>/', views.seasonal_planning_detail, name='seasonal_planning_detail'),
+    
+    # Crop Rotation URLs
+    path('rotation/', views.crop_rotation_list, name='crop_rotation_list'),
+    path('rotation/add/', views.crop_rotation_create, name='crop_rotation_create'),
+    path('rotation/recommendations/', views.crop_rotation_recommendations, name='crop_rotation_recommendations'),
+
+    # Analytics URLs
+    path('analytics/', views.yield_analytics, name='yield_analytics'),
+    path('analytics/crop/<int:crop_id>/', views.crop_performance_detail, name='crop_performance_detail'),
 
     # AJAX
     path('ajax/get_crop_varieties/', views.get_crop_varieties, name='get_crop_varieties'),

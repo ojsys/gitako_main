@@ -1,0 +1,483 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load humanize %}
+
+{% block title %}AI Recommendations Dashboard - Gitako Farm Management{% endblock %}
+
+{% block extra_css %}
+<style>
+/* AI Recommendations specific styles */
+.recommendation-card {
+    border-left: 4px solid #4CAF50;
+    margin-bottom: 16px;
+    transition: all 0.3s ease;
+}
+
+.recommendation-card.urgent {
+    border-left-color: #f44336;
+}
+
+.recommendation-card.high {
+    border-left-color: #ff9800;
+}
+
+.recommendation-card.medium {
+    border-left-color: #2196F3;
+}
+
+.recommendation-card.low {
+    border-left-color: #9E9E9E;
+}
+
+.recommendation-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.confidence-badge {
+    font-size: 0.75rem;
+    padding: 2px 8px;
+}
+
+.ai-stats-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+}
+
+.weather-forecast {
+    background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
+    color: white;
+}
+
+.pest-alert {
+    background: linear-gradient(135deg, #fd79a8 0%, #e84393 100%);
+    color: white;
+}
+
+.resource-optimization {
+    background: linear-gradient(135deg, #00b894 0%, #00a085 100%);
+    color: white;
+}
+
+.recommendation-type-icon {
+    font-size: 1.5rem;
+    margin-right: 8px;
+}
+
+.ai-insights {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+@media (max-width: 768px) {
+    .recommendation-card {
+        margin-bottom: 12px;
+    }
+    
+    .ai-insights {
+        padding: 15px;
+        margin-bottom: 15px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-1">
+                        <i class="material-icons me-2">psychology</i>
+                        AI Recommendations
+                    </h1>
+                    <p class="text-muted mb-0">Smart farming insights powered by artificial intelligence</p>
+                </div>
+                
+                <!-- Farm Selection -->
+                <div class="dropdown">
+                    <button class="btn btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                        <i class="material-icons me-1">agriculture</i>
+                        {{ selected_farm.name }}
+                    </button>
+                    <ul class="dropdown-menu">
+                        {% for farm in user_farms %}
+                        <li>
+                            <a class="dropdown-item {% if farm == selected_farm %}active{% endif %}" 
+                               href="?farm_id={{ farm.id }}">
+                                {{ farm.name }}
+                            </a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="card ai-stats-card h-100">
+                <div class="card-body text-center">
+                    <i class="material-icons mb-2" style="font-size: 2.5rem;">lightbulb</i>
+                    <h3 class="mb-1">{{ stats.total_active }}</h3>
+                    <p class="mb-0">Active Recommendations</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="card bg-warning text-white h-100">
+                <div class="card-body text-center">
+                    <i class="material-icons mb-2" style="font-size: 2.5rem;">priority_high</i>
+                    <h3 class="mb-1">{{ stats.high_priority }}</h3>
+                    <p class="mb-0">High Priority</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="card bg-success text-white h-100">
+                <div class="card-body text-center">
+                    <i class="material-icons mb-2" style="font-size: 2.5rem;">check_circle</i>
+                    <h3 class="mb-1">{{ stats.implemented }}</h3>
+                    <p class="mb-0">Implemented</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="card bg-info text-white h-100">
+                <div class="card-body text-center">
+                    <i class="material-icons mb-2" style="font-size: 2.5rem;">star</i>
+                    <h3 class="mb-1">{{ stats.avg_rating|floatformat:1 }}</h3>
+                    <p class="mb-0">Avg Rating</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Generate New Recommendations -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="ai-insights">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="mb-1">
+                            <i class="material-icons me-2">auto_awesome</i>
+                            Generate Fresh AI Insights
+                        </h5>
+                        <p class="text-muted mb-0">Run our AI engine to get the latest recommendations for {{ selected_farm.name }}</p>
+                    </div>
+                    <form method="post" action="{% url 'recommendations:generate' %}" class="d-inline">
+                        {% csrf_token %}
+                        <input type="hidden" name="farm_id" value="{{ selected_farm.id }}">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="material-icons me-1">refresh</i>
+                            Generate Recommendations
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Urgent Recommendations -->
+    {% if urgent_recommendations %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">
+                        <i class="material-icons me-2">warning</i>
+                        Urgent Recommendations - Immediate Action Required
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% for rec in urgent_recommendations %}
+                    <div class="recommendation-card urgent card mb-3">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="flex-grow-1">
+                                    <h6 class="card-title">
+                                        {% if rec.recommendation_type == 'crop_selection' %}
+                                            <i class="material-icons recommendation-type-icon">eco</i>
+                                        {% elif rec.recommendation_type == 'pest_disease' %}
+                                            <i class="material-icons recommendation-type-icon">bug_report</i>
+                                        {% elif rec.recommendation_type == 'weather_based' %}
+                                            <i class="material-icons recommendation-type-icon">cloud</i>
+                                        {% else %}
+                                            <i class="material-icons recommendation-type-icon">insights</i>
+                                        {% endif %}
+                                        {{ rec.title }}
+                                    </h6>
+                                    <p class="card-text">{{ rec.description|truncatewords:20 }}</p>
+                                    <div class="d-flex align-items-center">
+                                        <span class="badge bg-danger me-2">{{ rec.get_priority_display }}</span>
+                                        <span class="badge bg-info confidence-badge">{{ rec.get_confidence_level_display }} Confidence</span>
+                                        <small class="text-muted ms-auto">{{ rec.created_at|timesince }} ago</small>
+                                    </div>
+                                </div>
+                                <div class="ms-3">
+                                    <a href="{% url 'recommendations:detail' rec.id %}" class="btn btn-sm btn-outline-primary">
+                                        View Details
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Recommendations by Type -->
+    <div class="row">
+        <!-- Crop Recommendations -->
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="material-icons me-2">eco</i>
+                        Crop Selection
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% for rec in recommendations_by_type.crop_selection %}
+                    <div class="recommendation-card {{ rec.priority }} card mb-3">
+                        <div class="card-body p-3">
+                            <h6 class="card-title">{{ rec.title }}</h6>
+                            <p class="card-text small">{{ rec.description|truncatewords:15 }}</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="badge bg-{{ rec.priority }} me-2">{{ rec.get_priority_display }}</span>
+                                <a href="{% url 'recommendations:detail' rec.id %}" class="btn btn-sm btn-outline-primary">View</a>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted text-center">No crop recommendations available</p>
+                    {% endfor %}
+                    
+                    {% if recommendations_by_type.crop_selection %}
+                    <div class="text-center">
+                        <a href="{% url 'recommendations:list' %}?type=crop_selection" class="btn btn-sm btn-outline-success">
+                            View All Crop Recommendations
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Weather Recommendations -->
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header weather-forecast">
+                    <h5 class="mb-0">
+                        <i class="material-icons me-2">cloud</i>
+                        Weather-Based Advice
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% for rec in recommendations_by_type.weather_based %}
+                    <div class="recommendation-card {{ rec.priority }} card mb-3">
+                        <div class="card-body p-3">
+                            <h6 class="card-title">{{ rec.title }}</h6>
+                            <p class="card-text small">{{ rec.description|truncatewords:15 }}</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="badge bg-{{ rec.priority }} me-2">{{ rec.get_priority_display }}</span>
+                                <a href="{% url 'recommendations:detail' rec.id %}" class="btn btn-sm btn-outline-primary">View</a>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted text-center">No weather recommendations available</p>
+                    {% endfor %}
+                    
+                    {% if recommendations_by_type.weather_based %}
+                    <div class="text-center">
+                        <a href="{% url 'recommendations:list' %}?type=weather_based" class="btn btn-sm btn-outline-info">
+                            View All Weather Advice
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Pest & Disease Alerts -->
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header pest-alert">
+                    <h5 class="mb-0">
+                        <i class="material-icons me-2">bug_report</i>
+                        Pest & Disease Alerts
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% for rec in recommendations_by_type.pest_disease %}
+                    <div class="recommendation-card {{ rec.priority }} card mb-3">
+                        <div class="card-body p-3">
+                            <h6 class="card-title">{{ rec.title }}</h6>
+                            <p class="card-text small">{{ rec.description|truncatewords:15 }}</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="badge bg-{{ rec.priority }} me-2">{{ rec.get_priority_display }}</span>
+                                <a href="{% url 'recommendations:detail' rec.id %}" class="btn btn-sm btn-outline-primary">View</a>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted text-center">No pest/disease alerts</p>
+                    {% endfor %}
+                    
+                    {% if recommendations_by_type.pest_disease %}
+                    <div class="text-center">
+                        <a href="{% url 'recommendations:pest_alerts' %}" class="btn btn-sm btn-outline-danger">
+                            View All Alerts
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Resource Optimization -->
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header resource-optimization">
+                    <h5 class="mb-0">
+                        <i class="material-icons me-2">tune</i>
+                        Resource Optimization
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% for rec in recommendations_by_type.resource_optimization %}
+                    <div class="recommendation-card {{ rec.priority }} card mb-3">
+                        <div class="card-body p-3">
+                            <h6 class="card-title">{{ rec.title }}</h6>
+                            <p class="card-text small">{{ rec.description|truncatewords:15 }}</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="badge bg-{{ rec.priority }} me-2">{{ rec.get_priority_display }}</span>
+                                <a href="{% url 'recommendations:detail' rec.id %}" class="btn btn-sm btn-outline-primary">View</a>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted text-center">No optimization recommendations</p>
+                    {% endfor %}
+                    
+                    {% if recommendations_by_type.resource_optimization %}
+                    <div class="text-center">
+                        <a href="{% url 'recommendations:resource_optimizations' %}" class="btn btn-sm btn-outline-success">
+                            View All Optimizations
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Market Timing -->
+    {% if recommendations_by_type.market_timing %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0">
+                        <i class="material-icons me-2">trending_up</i>
+                        Market Timing Recommendations
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for rec in recommendations_by_type.market_timing %}
+                        <div class="col-lg-4 mb-3">
+                            <div class="recommendation-card {{ rec.priority }} card">
+                                <div class="card-body p-3">
+                                    <h6 class="card-title">{{ rec.title }}</h6>
+                                    <p class="card-text small">{{ rec.description|truncatewords:15 }}</p>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="badge bg-{{ rec.priority }} me-2">{{ rec.get_priority_display }}</span>
+                                        <a href="{% url 'recommendations:detail' rec.id %}" class="btn btn-sm btn-outline-primary">View</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="text-center">
+                        <a href="{% url 'recommendations:market_predictions' %}" class="btn btn-outline-warning">
+                            View All Market Predictions
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Quick Actions -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="material-icons me-2">dashboard</i>
+                        Quick Actions
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 col-sm-6 mb-3">
+                            <a href="{% url 'recommendations:list' %}" class="btn btn-outline-primary w-100">
+                                <i class="material-icons d-block mb-2">list</i>
+                                All Recommendations
+                            </a>
+                        </div>
+                        <div class="col-md-3 col-sm-6 mb-3">
+                            <a href="{% url 'recommendations:pest_alerts' %}" class="btn btn-outline-danger w-100">
+                                <i class="material-icons d-block mb-2">bug_report</i>
+                                Pest Alerts
+                            </a>
+                        </div>
+                        <div class="col-md-3 col-sm-6 mb-3">
+                            <a href="{% url 'recommendations:market_predictions' %}" class="btn btn-outline-success w-100">
+                                <i class="material-icons d-block mb-2">trending_up</i>
+                                Market Insights
+                            </a>
+                        </div>
+                        <div class="col-md-3 col-sm-6 mb-3">
+                            <a href="{% url 'recommendations:resource_optimizations' %}" class="btn btn-outline-info w-100">
+                                <i class="material-icons d-block mb-2">tune</i>
+                                Optimize Resources
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Auto-refresh recommendations every 5 minutes
+setTimeout(function() {
+    location.reload();
+}, 300000);
+
+// Add tooltips to badges
+document.addEventListener('DOMContentLoaded', function() {
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+});
+</script>
+{% endblock %}

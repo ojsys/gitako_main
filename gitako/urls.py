@@ -20,9 +20,11 @@ urlpatterns = [
     path('', include('apps.site_config.urls')), # For Home
     path('financials/', include('apps.financials.urls')),
     path('marketplace/', include('apps.marketplace.urls')),
+    # path('analytics/', include('apps.analytics.urls')),  # Temporarily disabled
     path('recommendations/', include('apps.recommendations.urls')),
     
     # API URLs
+    path('api/', include('apps.api.urls')),
     path('api/v1/', include('api.v1.urls')),
 ]
 

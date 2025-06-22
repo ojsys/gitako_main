@@ -1,3 +1,4 @@
+from typing import override
 from django import forms
 from .models import Activity
 
@@ -112,6 +113,14 @@ class ActivityForm(forms.ModelForm):
         if other_cost is None:
             raise forms.ValidationError("Please enter an other cost.")
         return other_cost
+
+    def clean_total_cost(self):
+        labor_cost = self.cleaned_data.get('labor_cost')
+        material_cost = self.cleaned_data.get('material_cost')
+        other_cost = self.cleaned_data.get('other_cost')
+        if labor_cost is None or material_cost is None or other_cost is None:
+            raise forms.ValidationError("Please enter all cost fields.")
+        return labor_cost + material_cost + other_cost
 
 
 

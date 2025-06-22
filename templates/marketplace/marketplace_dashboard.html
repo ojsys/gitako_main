@@ -1,0 +1,378 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block title %}Marketplace Dashboard - Gitako Farm Management{% endblock %}
+
+{% block extra_css %}
+<style>
+.marketplace-header {
+    background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%);
+    color: white;
+    border-radius: 15px;
+    padding: 30px;
+    margin-bottom: 30px;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 15px;
+    padding: 25px;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+    border: 1px solid #f0f0f0;
+    transition: all 0.3s;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.stat-card:hover {
+    box-shadow: 0 4px 25px rgba(0,0,0,0.12);
+    border-color: #4caf50;
+}
+
+.stat-number {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #4caf50;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.stat-label {
+    color: #6c757d;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.product-card {
+    background: white;
+    border-radius: 15px;
+    padding: 25px;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+    margin-bottom: 20px;
+    border: 1px solid #f0f0f0;
+    transition: all 0.3s;
+}
+
+.product-card:hover {
+    box-shadow: 0 4px 25px rgba(0,0,0,0.12);
+    border-color: #4caf50;
+}
+
+.order-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    border-bottom: 1px solid #f8f9fa;
+    transition: all 0.3s;
+}
+
+.order-item:hover {
+    background: #f8f9fa;
+}
+
+.order-item:last-child {
+    border-bottom: none;
+}
+
+.status-badge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.status-pending { background: #fff3e0; color: #f57c00; }
+.status-confirmed { background: #e8f5e8; color: #2e7d32; }
+.status-shipped { background: #e3f2fd; color: #1976d2; }
+.status-delivered { background: #e8f5e8; color: #388e3c; }
+.status-cancelled { background: #ffebee; color: #d32f2f; }
+
+.quick-actions {
+    background: white;
+    border-radius: 15px;
+    padding: 25px;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+}
+
+.action-btn {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 10px;
+    text-align: left;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    text-decoration: none;
+    color: #333;
+    transition: all 0.3s;
+}
+
+.action-btn:hover {
+    border-color: #4caf50;
+    background: rgba(76, 175, 80, 0.05);
+    color: #4caf50;
+}
+
+.top-product {
+    display: flex;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.top-product:last-child {
+    border-bottom: none;
+}
+
+.product-rank {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: #4caf50;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    margin-right: 15px;
+}
+</style>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid px-4 py-4">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="h3 mb-0 text-primary">Marketplace Dashboard</h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'dashboard:index' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Marketplace</li>
+                </ol>
+            </nav>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{% url 'marketplace:marketplace_browse' %}" class="btn btn-success me-2">
+                <i class="material-icons small align-middle">store</i> Browse Products
+            </a>
+            <div class="dropdown d-inline">
+                <button class="btn btn-outline-success dropdown-toggle" data-bs-toggle="dropdown">
+                    <i class="material-icons small align-middle">add</i> List Product
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="{% url 'marketplace:create_input_product' %}">
+                        <i class="material-icons small align-middle">scatter_plot</i> Farm Input
+                    </a></li>
+                    <li><a class="dropdown-item" href="{% url 'marketplace:create_produce_product' %}">
+                        <i class="material-icons small align-middle">eco</i> Farm Produce
+                    </a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Marketplace Header -->
+    <div class="marketplace-header">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h2 class="mb-2">Farm Marketplace</h2>
+                <p class="mb-0 opacity-90">
+                    Connect with farmers, buy quality inputs, and sell your produce directly.
+                </p>
+            </div>
+            <div class="col-md-4 text-end">
+                <div class="h1 mb-0">{{ user_input_products|add:user_produce_products }}</div>
+                <small class="opacity-75">Your Listed Products</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="stat-card">
+                <span class="stat-number">{{ user_input_products }}</span>
+                <span class="stat-label">Input Products</span>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <span class="stat-number">{{ user_produce_products }}</span>
+                <span class="stat-label">Produce Listed</span>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <span class="stat-number">{{ orders_as_seller }}</span>
+                <span class="stat-label">Orders Received</span>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <span class="stat-number">₦{{ total_sales|floatformat:0 }}</span>
+                <span class="stat-label">Total Sales</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Main Content -->
+        <div class="col-lg-8">
+            <!-- Recent Orders -->
+            <div class="product-card">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="text-success mb-0">
+                        <i class="material-icons align-middle me-2">shopping_cart</i>
+                        Recent Orders
+                    </h5>
+                    <a href="{% url 'marketplace:my_orders' %}" class="btn btn-sm btn-outline-success">View All</a>
+                </div>
+
+                {% if recent_orders %}
+                    {% for order in recent_orders %}
+                    <div class="order-item">
+                        <div class="d-flex align-items-center flex-grow-1">
+                            <div class="me-3">
+                                <i class="material-icons text-success">receipt</i>
+                            </div>
+                            <div>
+                                <h6 class="mb-1">Order #{{ order.order_number }}</h6>
+                                <div class="small text-muted">
+                                    {% if order.buyer == user %}
+                                        From: {{ order.seller.get_full_name|default:order.seller.username }}
+                                    {% else %}
+                                        To: {{ order.buyer.get_full_name|default:order.buyer.username }}
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <div class="fw-bold">₦{{ order.total_amount|floatformat:0 }}</div>
+                            <span class="status-badge status-{{ order.status }}">{{ order.get_status_display }}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="material-icons text-muted" style="font-size: 3rem;">shopping_cart</i>
+                        <h6 class="text-muted mt-2">No Orders Yet</h6>
+                        <p class="text-muted">Start buying or selling to see orders here.</p>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Top Selling Products -->
+            <div class="product-card">
+                <h5 class="text-success mb-4">
+                    <i class="material-icons align-middle me-2">trending_up</i>
+                    Your Top Selling Products
+                </h5>
+
+                {% if top_selling_products %}
+                    {% for product in top_selling_products %}
+                    <div class="top-product">
+                        <div class="product-rank">{{ forloop.counter }}</div>
+                        <div class="flex-grow-1">
+                            <h6 class="mb-1">{{ product.product__name }}</h6>
+                            <div class="small text-muted">{{ product.total_sold }} units sold</div>
+                        </div>
+                        <div class="text-end">
+                            <div class="fw-bold text-success">₦{{ product.total_revenue|floatformat:0 }}</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="material-icons text-muted" style="font-size: 3rem;">trending_up</i>
+                        <h6 class="text-muted mt-2">No Sales Data</h6>
+                        <p class="text-muted">List products to start selling.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Quick Actions -->
+            <div class="quick-actions mb-4">
+                <h6 class="text-success mb-3">Quick Actions</h6>
+                
+                <a href="{% url 'marketplace:create_input_product' %}" class="action-btn">
+                    <i class="material-icons small align-middle me-2">scatter_plot</i>
+                    List Farm Input
+                </a>
+                
+                <a href="{% url 'marketplace:create_produce_product' %}" class="action-btn">
+                    <i class="material-icons small align-middle me-2">eco</i>
+                    List Farm Produce
+                </a>
+                
+                <a href="{% url 'marketplace:marketplace_browse' %}" class="action-btn">
+                    <i class="material-icons small align-middle me-2">store</i>
+                    Browse Marketplace
+                </a>
+                
+                <a href="{% url 'marketplace:my_products' %}" class="action-btn">
+                    <i class="material-icons small align-middle me-2">inventory</i>
+                    My Products
+                </a>
+                
+                <a href="{% url 'marketplace:marketplace_analytics' %}" class="action-btn">
+                    <i class="material-icons small align-middle me-2">analytics</i>
+                    View Analytics
+                </a>
+            </div>
+
+            <!-- Popular Products -->
+            <div class="product-card">
+                <h6 class="text-success mb-3">
+                    <i class="material-icons align-middle me-2">star</i>
+                    Popular in Marketplace
+                </h6>
+                
+                {% for product in popular_products %}
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <div class="fw-bold">{{ product.name }}</div>
+                        <small class="text-muted">{{ product.category }}</small>
+                    </div>
+                    <small class="text-success">{{ product.order_count }} orders</small>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Sales Summary -->
+            <div class="product-card">
+                <h6 class="text-success mb-3">
+                    <i class="material-icons align-middle me-2">account_balance_wallet</i>
+                    Sales Summary
+                </h6>
+                
+                <div class="row text-center">
+                    <div class="col-6">
+                        <div class="fw-bold text-success">₦{{ total_sales|floatformat:0 }}</div>
+                        <small class="text-muted">Total Sales</small>
+                    </div>
+                    <div class="col-6">
+                        <div class="fw-bold text-primary">₦{{ total_purchases|floatformat:0 }}</div>
+                        <small class="text-muted">Total Purchases</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Auto-refresh orders every 30 seconds
+setInterval(function() {
+    // In a real implementation, you'd use AJAX to refresh order status
+    // For now, this is a placeholder
+}, 30000);
+</script>
+{% endblock %}

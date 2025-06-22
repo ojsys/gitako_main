@@ -16,8 +16,7 @@ def budget_dashboard(request):
     today = timezone.now().date()
     active_budgets = Budget.objects.filter(
         user=request.user,
-        start_date__lte=today,
-        end_date__gte=today
+        
     )
     active_budgets_count = active_budgets.count()
     

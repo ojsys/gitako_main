@@ -128,7 +128,8 @@
                     </div>
                     <div class="row mb-3">
                         <div class="col-md-4 fw-bold">Total Cost:</div>
-                        <div class="col-md-8 fw-bold">₦{{ total_cost|floatformat:2|intcomma }}</div>
+                        <div class="col-md-8 fw-bold">₦{{ activity.labor_cost|add:activity.material_cost|add:activity.other_cost|floatformat:2|intcomma }}
+                        </div>
                     </div>
                 </div>
             </div>

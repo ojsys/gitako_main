@@ -1,0 +1,636 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load widget_tweaks %}
+
+{% block title %}{{ title }} - Gitako Farm Management{% endblock %}
+
+{% block extra_css %}
+<style>
+.rotation-wizard {
+    background: linear-gradient(135deg, #00c853 0%, #4caf50 100%);
+    color: white;
+    border-radius: 15px;
+    padding: 30px;
+    margin-bottom: 30px;
+}
+
+.form-section {
+    background: white;
+    border-radius: 15px;
+    padding: 30px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    border: 1px solid #f0f0f0;
+}
+
+.section-header {
+    border-bottom: 2px solid #e9ecef;
+    padding-bottom: 15px;
+    margin-bottom: 25px;
+}
+
+.progress-indicator {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.progress-step {
+    flex: 1;
+    text-align: center;
+    position: relative;
+}
+
+.progress-step:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    top: 15px;
+    right: -50%;
+    width: 100%;
+    height: 2px;
+    background: #e9ecef;
+}
+
+.progress-step.active::after {
+    background: #00c853;
+}
+
+.progress-step-circle {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: #e9ecef;
+    color: #6c757d;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 5px;
+    font-weight: bold;
+}
+
+.progress-step.active .progress-step-circle {
+    background: #00c853;
+    color: white;
+}
+
+.crop-selector {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin: 20px 0;
+}
+
+.crop-option {
+    background: white;
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    position: relative;
+}
+
+.crop-option:hover {
+    border-color: #00c853;
+    box-shadow: 0 4px 15px rgba(0,200,83,0.2);
+}
+
+.crop-option.selected {
+    border-color: #00c853;
+    background: rgba(0,200,83,0.1);
+}
+
+.crop-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    background: #f8f9fa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 15px;
+    font-size: 2rem;
+    color: #00c853;
+}
+
+.crop-option.selected .crop-icon {
+    background: #00c853;
+    color: white;
+}
+
+.rotation-preview {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 25px;
+    margin: 20px 0;
+}
+
+.timeline-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 20px 0;
+}
+
+.year-item {
+    flex: 1;
+    text-align: center;
+    position: relative;
+}
+
+.year-item:not(:last-child)::after {
+    content: '→';
+    position: absolute;
+    right: -15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #00c853;
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.year-circle {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: #e9ecef;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 10px;
+    transition: all 0.3s;
+}
+
+.year-circle.filled {
+    background: #00c853;
+    color: white;
+}
+
+.year-number {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.benefits-preview {
+    background: linear-gradient(135deg, #673ab7 0%, #9c27b0 100%);
+    color: white;
+    border-radius: 12px;
+    padding: 25px;
+    margin: 20px 0;
+}
+
+.benefit-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.benefit-item:last-child {
+    margin-bottom: 0;
+}
+
+.benefit-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 15px;
+}
+
+.field-info-card {
+    background: #f8f9fa;
+    border: 2px dashed #dee2e6;
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    margin: 20px 0;
+}
+
+.validation-feedback {
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 8px;
+    padding: 15px;
+    margin: 20px 0;
+}
+</style>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid px-4 py-4">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="h3 mb-0 text-success">{{ title }}</h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'dashboard:index' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'farms:crop_rotation_list' %}">Crop Rotation</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">{{ title }}</li>
+                </ol>
+            </nav>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{% url 'farms:crop_rotation_list' %}" class="btn btn-outline-secondary">
+                <i class="material-icons small align-middle">arrow_back</i> Back to Plans
+            </a>
+        </div>
+    </div>
+
+    <!-- Rotation Wizard Header -->
+    <div class="rotation-wizard">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h3 class="mb-2">Crop Rotation Wizard</h3>
+                <p class="mb-0 opacity-90">Create a strategic rotation plan to improve soil health, manage pests, and optimize yields across multiple growing seasons.</p>
+            </div>
+            <div class="col-md-4 text-end">
+                <i class="material-icons" style="font-size: 4rem; opacity: 0.7;">timeline</i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Progress Indicator -->
+    <div class="progress-indicator">
+        <div class="progress-step active">
+            <div class="progress-step-circle">1</div>
+            <small>Basic Info</small>
+        </div>
+        <div class="progress-step active">
+            <div class="progress-step-circle">2</div>
+            <small>Crop Selection</small>
+        </div>
+        <div class="progress-step active">
+            <div class="progress-step-circle">3</div>
+            <small>Benefits & Schedule</small>
+        </div>
+        <div class="progress-step active">
+            <div class="progress-step-circle">4</div>
+            <small>Review & Create</small>
+        </div>
+    </div>
+
+    <form method="post" novalidate>
+        {% csrf_token %}
+        
+        <!-- Basic Information Section -->
+        <div class="form-section">
+            <div class="section-header">
+                <h5 class="text-success mb-0">
+                    <i class="material-icons align-middle me-2">info</i>
+                    Basic Information
+                </h5>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <label for="{{ form.farm.id_for_label }}" class="form-label">Select Farm</label>
+                    {{ form.farm|add_class:"form-control" }}
+                    {% if form.farm.errors %}
+                        <div class="text-danger small">{{ form.farm.errors.0 }}</div>
+                    {% endif %}
+                </div>
+                <div class="col-md-6">
+                    <label for="{{ form.field.id_for_label }}" class="form-label">Select Field</label>
+                    {{ form.field|add_class:"form-control" }}
+                    {% if form.field.errors %}
+                        <div class="text-danger small">{{ form.field.errors.0 }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="row mt-3">
+                <div class="col-md-6">
+                    <label for="{{ form.plan_name.id_for_label }}" class="form-label">Plan Name</label>
+                    {{ form.plan_name|add_class:"form-control" }}
+                    <div class="form-text">Give your rotation plan a descriptive name</div>
+                    {% if form.plan_name.errors %}
+                        <div class="text-danger small">{{ form.plan_name.errors.0 }}</div>
+                    {% endif %}
+                </div>
+                <div class="col-md-3">
+                    <label for="{{ form.rotation_cycle_years.id_for_label }}" class="form-label">Cycle Length (Years)</label>
+                    {{ form.rotation_cycle_years|add_class:"form-control" }}
+                    {% if form.rotation_cycle_years.errors %}
+                        <div class="text-danger small">{{ form.rotation_cycle_years.errors.0 }}</div>
+                    {% endif %}
+                </div>
+                <div class="col-md-3">
+                    <label for="{{ form.start_year.id_for_label }}" class="form-label">Start Year</label>
+                    {{ form.start_year|add_class:"form-control" }}
+                    {% if form.start_year.errors %}
+                        <div class="text-danger small">{{ form.start_year.errors.0 }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Field Preview -->
+            <div class="field-info-card" id="field-preview" style="display: none;">
+                <h6 class="text-success">Selected Field Information</h6>
+                <div class="row mt-3">
+                    <div class="col-md-4">
+                        <strong id="field-size">-</strong>
+                        <div class="small text-muted">Size (hectares)</div>
+                    </div>
+                    <div class="col-md-4">
+                        <strong id="field-type">-</strong>
+                        <div class="small text-muted">Current Use</div>
+                    </div>
+                    <div class="col-md-4">
+                        <strong id="field-status">-</strong>
+                        <div class="small text-muted">Status</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Crop Selection Section -->
+        <div class="form-section">
+            <div class="section-header">
+                <h5 class="text-success mb-0">
+                    <i class="material-icons align-middle me-2">agriculture</i>
+                    Crop Selection
+                </h5>
+            </div>
+
+            <!-- Year 1 Crop -->
+            <div class="mb-4">
+                <label for="{{ form.year_1_crop.id_for_label }}" class="form-label">Year 1 Crop (Required)</label>
+                {{ form.year_1_crop|add_class:"form-control" }}
+                {% if form.year_1_crop.errors %}
+                    <div class="text-danger small">{{ form.year_1_crop.errors.0 }}</div>
+                {% endif %}
+            </div>
+
+            <!-- Year 2 Crop -->
+            <div class="mb-4">
+                <label for="{{ form.year_2_crop.id_for_label }}" class="form-label">Year 2 Crop (Optional)</label>
+                {{ form.year_2_crop|add_class:"form-control" }}
+                <div class="form-text">Leave blank for shorter rotation cycles</div>
+                {% if form.year_2_crop.errors %}
+                    <div class="text-danger small">{{ form.year_2_crop.errors.0 }}</div>
+                {% endif %}
+            </div>
+
+            <!-- Year 3 Crop -->
+            <div class="mb-4">
+                <label for="{{ form.year_3_crop.id_for_label }}" class="form-label">Year 3 Crop (Optional)</label>
+                {{ form.year_3_crop|add_class:"form-control" }}
+                {% if form.year_3_crop.errors %}
+                    <div class="text-danger small">{{ form.year_3_crop.errors.0 }}</div>
+                {% endif %}
+            </div>
+
+            <!-- Year 4 Crop -->
+            <div class="mb-4">
+                <label for="{{ form.year_4_crop.id_for_label }}" class="form-label">Year 4 Crop (Optional)</label>
+                {{ form.year_4_crop|add_class:"form-control" }}
+                {% if form.year_4_crop.errors %}
+                    <div class="text-danger small">{{ form.year_4_crop.errors.0 }}</div>
+                {% endif %}
+            </div>
+
+            <!-- Rotation Preview -->
+            <div class="rotation-preview">
+                <h6 class="text-success mb-3">Rotation Preview</h6>
+                <div class="timeline-container">
+                    <div class="year-item">
+                        <div class="year-circle" id="year1-preview">
+                            <span class="year-number">1</span>
+                            <small>Select crop</small>
+                        </div>
+                        <small class="text-muted">Year 1</small>
+                    </div>
+                    <div class="year-item">
+                        <div class="year-circle" id="year2-preview">
+                            <span class="year-number">2</span>
+                            <small>Select crop</small>
+                        </div>
+                        <small class="text-muted">Year 2</small>
+                    </div>
+                    <div class="year-item">
+                        <div class="year-circle" id="year3-preview">
+                            <span class="year-number">3</span>
+                            <small>Optional</small>
+                        </div>
+                        <small class="text-muted">Year 3</small>
+                    </div>
+                    <div class="year-item">
+                        <div class="year-circle" id="year4-preview">
+                            <span class="year-number">4</span>
+                            <small>Optional</small>
+                        </div>
+                        <small class="text-muted">Year 4</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Benefits & Planning Section -->
+        <div class="form-section">
+            <div class="section-header">
+                <h5 class="text-success mb-0">
+                    <i class="material-icons align-middle me-2">eco</i>
+                    Benefits & Planning Details
+                </h5>
+            </div>
+
+            <div class="row">
+                <div class="col-md-12">
+                    <label for="{{ form.soil_health_benefits.id_for_label }}" class="form-label">Soil Health Benefits</label>
+                    {{ form.soil_health_benefits|add_class:"form-control" }}
+                    <div class="form-text">Describe how this rotation will improve soil health</div>
+                    {% if form.soil_health_benefits.errors %}
+                        <div class="text-danger small">{{ form.soil_health_benefits.errors.0 }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="row mt-3">
+                <div class="col-md-6">
+                    <label for="{{ form.pest_management_benefits.id_for_label }}" class="form-label">Pest Management Benefits</label>
+                    {{ form.pest_management_benefits|add_class:"form-control" }}
+                    {% if form.pest_management_benefits.errors %}
+                        <div class="text-danger small">{{ form.pest_management_benefits.errors.0 }}</div>
+                    {% endif %}
+                </div>
+                <div class="col-md-6">
+                    <label for="{{ form.economic_benefits.id_for_label }}" class="form-label">Economic Benefits</label>
+                    {{ form.economic_benefits|add_class:"form-control" }}
+                    {% if form.economic_benefits.errors %}
+                        <div class="text-danger small">{{ form.economic_benefits.errors.0 }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Benefits Preview -->
+            <div class="benefits-preview">
+                <h6 class="mb-3">Expected Benefits Summary</h6>
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="benefit-item">
+                            <div class="benefit-icon">
+                                <i class="material-icons">eco</i>
+                            </div>
+                            <div>
+                                <strong>Soil Health</strong>
+                                <div class="small opacity-75">Improved nutrient cycling and structure</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="benefit-item">
+                            <div class="benefit-icon">
+                                <i class="material-icons">bug_report</i>
+                            </div>
+                            <div>
+                                <strong>Pest Control</strong>
+                                <div class="small opacity-75">Natural pest and disease management</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="benefit-item">
+                            <div class="benefit-icon">
+                                <i class="material-icons">trending_up</i>
+                            </div>
+                            <div>
+                                <strong>Economic</strong>
+                                <div class="small opacity-75">Increased yields and reduced inputs</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status Section -->
+        <div class="form-section">
+            <div class="section-header">
+                <h5 class="text-success mb-0">
+                    <i class="material-icons align-middle me-2">check_circle</i>
+                    Plan Status
+                </h5>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-check form-switch">
+                        {{ form.is_active|add_class:"form-check-input" }}
+                        <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+                            Activate this rotation plan immediately
+                        </label>
+                    </div>
+                    <div class="form-text">You can activate or deactivate the plan later</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="d-flex justify-content-between">
+            <a href="{% url 'farms:crop_rotation_list' %}" class="btn btn-secondary">
+                <i class="material-icons small align-middle">cancel</i> Cancel
+            </a>
+            <div>
+                <button type="button" class="btn btn-outline-success me-2" onclick="validateAndPreview()">
+                    <i class="material-icons small align-middle">preview</i> Preview Plan
+                </button>
+                <button type="submit" class="btn btn-success">
+                    <i class="material-icons small align-middle">check</i> Create Rotation Plan
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Field information display
+    const fieldSelect = document.getElementById('{{ form.field.id_for_label }}');
+    const fieldPreview = document.getElementById('field-preview');
+    
+    if (fieldSelect) {
+        fieldSelect.addEventListener('change', function() {
+            if (this.value) {
+                // In a real implementation, you would fetch field data via AJAX
+                fieldPreview.style.display = 'block';
+                document.getElementById('field-size').textContent = '2.5 ha'; // placeholder
+                document.getElementById('field-type').textContent = 'Mixed'; // placeholder
+                document.getElementById('field-status').textContent = 'Available'; // placeholder
+            } else {
+                fieldPreview.style.display = 'none';
+            }
+        });
+    }
+    
+    // Crop selection preview updates
+    const cropSelects = [
+        document.getElementById('{{ form.year_1_crop.id_for_label }}'),
+        document.getElementById('{{ form.year_2_crop.id_for_label }}'),
+        document.getElementById('{{ form.year_3_crop.id_for_label }}'),
+        document.getElementById('{{ form.year_4_crop.id_for_label }}')
+    ];
+    
+    const yearPreviews = [
+        document.getElementById('year1-preview'),
+        document.getElementById('year2-preview'),
+        document.getElementById('year3-preview'),
+        document.getElementById('year4-preview')
+    ];
+    
+    cropSelects.forEach((select, index) => {
+        if (select) {
+            select.addEventListener('change', function() {
+                const preview = yearPreviews[index];
+                if (this.value && this.selectedOptions[0]) {
+                    const cropName = this.selectedOptions[0].text;
+                    preview.classList.add('filled');
+                    preview.querySelector('small').textContent = cropName;
+                } else {
+                    preview.classList.remove('filled');
+                    preview.querySelector('small').textContent = index < 2 ? 'Select crop' : 'Optional';
+                }
+            });
+        }
+    });
+});
+
+function validateAndPreview() {
+    // Basic validation
+    const year1Crop = document.getElementById('{{ form.year_1_crop.id_for_label }}').value;
+    const planName = document.getElementById('{{ form.plan_name.id_for_label }}').value;
+    
+    if (!year1Crop || !planName) {
+        alert('Please fill in the plan name and select at least the Year 1 crop before previewing.');
+        return;
+    }
+    
+    // Show preview (in a real implementation, this might open a modal)
+    alert('Preview functionality would show a detailed preview of the rotation plan here.');
+}
+
+// Auto-generate plan name based on selected crops
+function generatePlanName() {
+    const year1Select = document.getElementById('{{ form.year_1_crop.id_for_label }}');
+    const year2Select = document.getElementById('{{ form.year_2_crop.id_for_label }}');
+    const planNameInput = document.getElementById('{{ form.plan_name.id_for_label }}');
+    
+    if (year1Select.value && year2Select.value && !planNameInput.value) {
+        const year1Crop = year1Select.selectedOptions[0].text;
+        const year2Crop = year2Select.selectedOptions[0].text;
+        planNameInput.value = `${year1Crop} - ${year2Crop} Rotation`;
+    }
+}
+
+// Add event listeners for auto-generation
+document.getElementById('{{ form.year_1_crop.id_for_label }}')?.addEventListener('change', generatePlanName);
+document.getElementById('{{ form.year_2_crop.id_for_label }}')?.addEventListener('change', generatePlanName);
+</script>
+{% endblock %}

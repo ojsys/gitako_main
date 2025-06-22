@@ -1,0 +1,519 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load widget_tweaks %}
+
+{% block title %}{{ title }} - Gitako Farm Management{% endblock %}
+
+{% block extra_css %}
+<style>
+.planning-wizard {
+    background: linear-gradient(135deg, #00c853 0%, #4caf50 100%);
+    color: white;
+    border-radius: 15px;
+    padding: 30px;
+    margin-bottom: 30px;
+}
+
+.season-selector {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+    margin: 20px 0;
+}
+
+.season-option {
+    background: white;
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.season-option:hover {
+    border-color: #00c853;
+    box-shadow: 0 4px 15px rgba(0,200,83,0.2);
+}
+
+.season-option.selected {
+    border-color: #00c853;
+    background: rgba(0,200,83,0.1);
+}
+
+.season-icon {
+    font-size: 2rem;
+    margin-bottom: 10px;
+    display: block;
+}
+
+.form-section {
+    background: white;
+    border-radius: 15px;
+    padding: 30px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+.section-header {
+    border-bottom: 2px solid #e9ecef;
+    padding-bottom: 15px;
+    margin-bottom: 25px;
+}
+
+.progress-indicator {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.progress-step {
+    flex: 1;
+    text-align: center;
+    position: relative;
+}
+
+.progress-step:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    top: 15px;
+    right: -50%;
+    width: 100%;
+    height: 2px;
+    background: #e9ecef;
+}
+
+.progress-step.active::after {
+    background: #00c853;
+}
+
+.progress-step-circle {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: #e9ecef;
+    color: #6c757d;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 5px;
+    font-weight: bold;
+}
+
+.progress-step.active .progress-step-circle {
+    background: #00c853;
+    color: white;
+}
+
+.cost-calculator {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 20px;
+    margin-top: 20px;
+}
+
+.cost-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.cost-item:last-child {
+    border-bottom: none;
+    font-weight: bold;
+    background: rgba(0,200,83,0.1);
+    margin: 10px -20px -20px;
+    padding: 15px 20px;
+    border-radius: 0 0 10px 10px;
+}
+
+.field-preview {
+    background: #f8f9fa;
+    border: 2px dashed #dee2e6;
+    border-radius: 10px;
+    padding: 20px;
+    text-align: center;
+    margin: 20px 0;
+}
+
+.field-info {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.info-item {
+    background: white;
+    padding: 15px;
+    border-radius: 8px;
+    text-align: center;
+}
+</style>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid px-4 py-4">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="h3 mb-0 text-success">{{ title }}</h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'dashboard:index' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'farms:seasonal_planning_list' %}">Seasonal Planning</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">{{ title }}</li>
+                </ol>
+            </nav>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{% url 'farms:seasonal_planning_list' %}" class="btn btn-outline-secondary">
+                <i class="material-icons small align-middle">arrow_back</i> Back to Plans
+            </a>
+        </div>
+    </div>
+
+    <!-- Planning Wizard Header -->
+    <div class="planning-wizard">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h3 class="mb-2">Seasonal Planning Wizard</h3>
+                <p class="mb-0 opacity-90">Plan your crops strategically for maximum yield and profitability throughout the season.</p>
+            </div>
+            <div class="col-md-4 text-end">
+                <i class="material-icons" style="font-size: 4rem; opacity: 0.7;">schedule</i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Progress Indicator -->
+    <div class="progress-indicator">
+        <div class="progress-step active">
+            <div class="progress-step-circle">1</div>
+            <small>Basic Info</small>
+        </div>
+        <div class="progress-step">
+            <div class="progress-step-circle">2</div>
+            <small>Field Selection</small>
+        </div>
+        <div class="progress-step">
+            <div class="progress-step-circle">3</div>
+            <small>Season & Crops</small>
+        </div>
+        <div class="progress-step">
+            <div class="progress-step-circle">4</div>
+            <small>Budget & Review</small>
+        </div>
+    </div>
+
+    <form method="post" novalidate>
+        {% csrf_token %}
+        
+        <!-- Basic Information Section -->
+        <div class="form-section">
+            <div class="section-header">
+                <h5 class="text-success mb-0">
+                    <i class="material-icons align-middle me-2">info</i>
+                    Basic Information
+                </h5>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <label for="{{ form.farm.id_for_label }}" class="form-label">Select Farm</label>
+                    {{ form.farm|add_class:"form-control" }}
+                    {% if form.farm.errors %}
+                        <div class="text-danger small">{{ form.farm.errors.0 }}</div>
+                    {% endif %}
+                </div>
+                <div class="col-md-6">
+                    <label for="{{ form.field.id_for_label }}" class="form-label">Select Field</label>
+                    {{ form.field|add_class:"form-control" }}
+                    {% if form.field.errors %}
+                        <div class="text-danger small">{{ form.field.errors.0 }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Field Preview -->
+            <div class="field-preview" id="field-preview" style="display: none;">
+                <h6 class="text-success">Field Information</h6>
+                <div class="field-info">
+                    <div class="info-item">
+                        <strong id="field-size">-</strong>
+                        <div class="small text-muted">Size (hectares)</div>
+                    </div>
+                    <div class="info-item">
+                        <strong id="field-type">-</strong>
+                        <div class="small text-muted">Current Crop</div>
+                    </div>
+                    <div class="info-item">
+                        <strong id="field-status">-</strong>
+                        <div class="small text-muted">Status</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Season and Year Section -->
+        <div class="form-section">
+            <div class="section-header">
+                <h5 class="text-success mb-0">
+                    <i class="material-icons align-middle me-2">calendar_today</i>
+                    Season & Year
+                </h5>
+            </div>
+
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <label for="{{ form.season_year.id_for_label }}" class="form-label">Planning Year</label>
+                    {{ form.season_year|add_class:"form-control" }}
+                    {% if form.season_year.errors %}
+                        <div class="text-danger small">{{ form.season_year.errors.0 }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <label class="form-label">Select Season</label>
+            <div class="season-selector">
+                <div class="season-option" data-season="spring">
+                    <i class="material-icons season-icon text-success">local_florist</i>
+                    <strong>Spring</strong>
+                    <div class="small text-muted">Planting Season</div>
+                </div>
+                <div class="season-option" data-season="summer">
+                    <i class="material-icons season-icon text-warning">wb_sunny</i>
+                    <strong>Summer</strong>
+                    <div class="small text-muted">Growth Period</div>
+                </div>
+                <div class="season-option" data-season="fall">
+                    <i class="material-icons season-icon text-danger">eco</i>
+                    <strong>Fall</strong>
+                    <div class="small text-muted">Harvest Time</div>
+                </div>
+                <div class="season-option" data-season="winter">
+                    <i class="material-icons season-icon text-primary">ac_unit</i>
+                    <strong>Winter</strong>
+                    <div class="small text-muted">Preparation</div>
+                </div>
+                <div class="season-option" data-season="wet">
+                    <i class="material-icons season-icon text-info">water_drop</i>
+                    <strong>Wet Season</strong>
+                    <div class="small text-muted">Rainy Period</div>
+                </div>
+                <div class="season-option" data-season="dry">
+                    <i class="material-icons season-icon text-secondary">dry</i>
+                    <strong>Dry Season</strong>
+                    <div class="small text-muted">Dry Period</div>
+                </div>
+            </div>
+            {{ form.season|add_class:"form-control d-none" }}
+            {% if form.season.errors %}
+                <div class="text-danger small">{{ form.season.errors.0 }}</div>
+            {% endif %}
+        </div>
+
+        <!-- Planning Details Section -->
+        <div class="form-section">
+            <div class="section-header">
+                <h5 class="text-success mb-0">
+                    <i class="material-icons align-middle me-2">agriculture</i>
+                    Planning Details
+                </h5>
+            </div>
+
+            <div class="row">
+                <div class="col-md-12">
+                    <label for="{{ form.planning_notes.id_for_label }}" class="form-label">Planning Notes</label>
+                    {{ form.planning_notes|add_class:"form-control" }}
+                    <div class="form-text">Describe your overall plan and goals for this season</div>
+                    {% if form.planning_notes.errors %}
+                        <div class="text-danger small">{{ form.planning_notes.errors.0 }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="row mt-3">
+                <div class="col-md-4">
+                    <div class="form-check">
+                        {{ form.soil_prep_required|add_class:"form-check-input" }}
+                        <label class="form-check-label" for="{{ form.soil_prep_required.id_for_label }}">
+                            Soil Preparation Required
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mt-3">
+                <div class="col-md-6">
+                    <label for="{{ form.irrigation_plan.id_for_label }}" class="form-label">Irrigation Plan</label>
+                    {{ form.irrigation_plan|add_class:"form-control" }}
+                    {% if form.irrigation_plan.errors %}
+                        <div class="text-danger small">{{ form.irrigation_plan.errors.0 }}</div>
+                    {% endif %}
+                </div>
+                <div class="col-md-6">
+                    <label for="{{ form.fertilization_plan.id_for_label }}" class="form-label">Fertilization Plan</label>
+                    {{ form.fertilization_plan|add_class:"form-control" }}
+                    {% if form.fertilization_plan.errors %}
+                        <div class="text-danger small">{{ form.fertilization_plan.errors.0 }}</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Budget Planning Section -->
+        <div class="form-section">
+            <div class="section-header">
+                <h5 class="text-success mb-0">
+                    <i class="material-icons align-middle me-2">account_balance_wallet</i>
+                    Budget Planning
+                </h5>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <label for="{{ form.estimated_total_cost.id_for_label }}" class="form-label">Estimated Total Cost</label>
+                    <div class="input-group">
+                        <span class="input-group-text">₦</span>
+                        {{ form.estimated_total_cost|add_class:"form-control" }}
+                    </div>
+                    {% if form.estimated_total_cost.errors %}
+                        <div class="text-danger small">{{ form.estimated_total_cost.errors.0 }}</div>
+                    {% endif %}
+                </div>
+                <div class="col-md-6">
+                    <label for="{{ form.estimated_revenue.id_for_label }}" class="form-label">Estimated Revenue</label>
+                    <div class="input-group">
+                        <span class="input-group-text">₦</span>
+                        {{ form.estimated_revenue|add_class:"form-control" }}
+                    </div>
+                    {% if form.estimated_revenue.errors %}
+                        <div class="text-danger small">{{ form.estimated_revenue.errors.0 }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Cost Calculator -->
+            <div class="cost-calculator">
+                <h6 class="text-success mb-3">Budget Calculator</h6>
+                <div class="cost-item">
+                    <span>Seeds & Planting Materials</span>
+                    <span class="fw-bold">₦0</span>
+                </div>
+                <div class="cost-item">
+                    <span>Fertilizers & Nutrients</span>
+                    <span class="fw-bold">₦0</span>
+                </div>
+                <div class="cost-item">
+                    <span>Labor Costs</span>
+                    <span class="fw-bold">₦0</span>
+                </div>
+                <div class="cost-item">
+                    <span>Equipment & Tools</span>
+                    <span class="fw-bold">₦0</span>
+                </div>
+                <div class="cost-item">
+                    <span>Total Estimated Cost</span>
+                    <span class="fw-bold text-success">₦0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status Section -->
+        <div class="form-section">
+            <div class="section-header">
+                <h5 class="text-success mb-0">
+                    <i class="material-icons align-middle me-2">check_circle</i>
+                    Plan Status
+                </h5>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <label for="{{ form.status.id_for_label }}" class="form-label">Status</label>
+                    {{ form.status|add_class:"form-control" }}
+                    {% if form.status.errors %}
+                        <div class="text-danger small">{{ form.status.errors.0 }}</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="d-flex justify-content-between">
+            <a href="{% url 'farms:seasonal_planning_list' %}" class="btn btn-secondary">
+                <i class="material-icons small align-middle">cancel</i> Cancel
+            </a>
+            <div>
+                <button type="button" class="btn btn-outline-success me-2">
+                    <i class="material-icons small align-middle">save</i> Save Draft
+                </button>
+                <button type="submit" class="btn btn-success">
+                    <i class="material-icons small align-middle">check</i> Create Plan
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Season selection
+    const seasonOptions = document.querySelectorAll('.season-option');
+    const seasonInput = document.getElementById('{{ form.season.id_for_label }}');
+    
+    seasonOptions.forEach(option => {
+        option.addEventListener('click', function() {
+            // Remove selected class from all options
+            seasonOptions.forEach(opt => opt.classList.remove('selected'));
+            
+            // Add selected class to clicked option
+            this.classList.add('selected');
+            
+            // Update hidden input value
+            seasonInput.value = this.dataset.season;
+        });
+    });
+    
+    // Field information display
+    const fieldSelect = document.getElementById('{{ form.field.id_for_label }}');
+    const fieldPreview = document.getElementById('field-preview');
+    
+    fieldSelect.addEventListener('change', function() {
+        if (this.value) {
+            // In a real implementation, you would fetch field data via AJAX
+            // For now, we'll show a placeholder
+            fieldPreview.style.display = 'block';
+            document.getElementById('field-size').textContent = '2.5 ha'; // placeholder
+            document.getElementById('field-type').textContent = 'Mixed'; // placeholder
+            document.getElementById('field-status').textContent = 'Available'; // placeholder
+        } else {
+            fieldPreview.style.display = 'none';
+        }
+    });
+    
+    // Budget calculator (basic example)
+    const costInputs = document.querySelectorAll('input[type="number"]');
+    
+    function updateBudgetCalculator() {
+        const totalCost = document.getElementById('{{ form.estimated_total_cost.id_for_label }}').value || 0;
+        const totalRevenue = document.getElementById('{{ form.estimated_revenue.id_for_label }}').value || 0;
+        
+        // Update calculator display (this would be more sophisticated in a real app)
+        const calculatorTotal = document.querySelector('.cost-calculator .cost-item:last-child span:last-child');
+        if (calculatorTotal) {
+            calculatorTotal.textContent = '₦' + parseInt(totalCost).toLocaleString();
+        }
+    }
+    
+    costInputs.forEach(input => {
+        input.addEventListener('input', updateBudgetCalculator);
+    });
+});
+</script>
+{% endblock %}

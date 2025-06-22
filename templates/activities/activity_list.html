@@ -104,22 +104,24 @@
                             <td>
                                 <div class="btn-group">
                                     <a href="{% url 'activities:activity_detail' activity_id=activity.id %}" class="btn btn-sm btn-outline-primary">
-                                        <i class="material-icons small">visibility</i>
+                                        <i class="material-icons">visibility</i>
                                     </a>
-                                    <a href="{% url 'activities:activity_edit' activity_id=activity.id %}" class="btn btn-sm btn-outline-secondary">
-                                        <i class="material-icons small">edit</i>
+                                    <a href="{% url 'activities:activity_edit' activity_id=activity.id %}" class="btn btn-sm btn-outline-secondary" style="margin-left: 0.5rem;">
+                                        <i class="material-icons">edit</i>
                                     </a>
+                                    
+                                    <a href="{% url 'activities:activity_delete' activity_id=activity.id %}" class="btn btn-sm btn-outline-danger" style="margin-left: 0.5rem;">
+                                        <i class="material-icons">delete</i>
+                                    </a>
+
                                     {% if activity.status != 'completed' %}
                                     <form method="post" action="{% url 'activities:mark_activity_complete' activity_id=activity.id %}" class="d-inline">
                                         {% csrf_token %}
                                         <button type="submit" class="btn btn-sm btn-outline-success">
-                                            <i class="material-icons small">check</i>
+                                            <i class="material-icons">check</i>
                                         </button>
                                     </form>
                                     {% endif %}
-                                    <a href="{% url 'activities:activity_delete' activity_id=activity.id %}" class="btn btn-sm btn-outline-danger">
-                                        <i class="material-icons small">delete</i>
-                                    </a>
                                 </div>
                             </td>
                         </tr>

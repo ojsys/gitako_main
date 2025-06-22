@@ -1,0 +1,692 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block title %}Inventory Management - Gitako Farm Management{% endblock %}
+
+{% block extra_css %}
+<style>
+.inventory-header {
+    background: linear-gradient(135deg, #3f51b5 0%, #5c6bc0 100%);
+    color: white;
+    border-radius: 15px;
+    padding: 30px;
+    margin-bottom: 30px;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 15px;
+    padding: 25px;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+    border: 1px solid #f0f0f0;
+    transition: all 0.3s;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.stat-card:hover {
+    box-shadow: 0 4px 25px rgba(0,0,0,0.12);
+    border-color: #3f51b5;
+}
+
+.stat-number {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #3f51b5;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.stat-number.warning {
+    color: #ff9800;
+}
+
+.stat-number.danger {
+    color: #f44336;
+}
+
+.stat-label {
+    color: #6c757d;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.alert-card {
+    background: white;
+    border-radius: 15px;
+    padding: 25px;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+    margin-bottom: 20px;
+    border-left: 4px solid transparent;
+}
+
+.alert-card.low-stock {
+    border-left-color: #ff9800;
+}
+
+.alert-card.expired {
+    border-left-color: #f44336;
+}
+
+.alert-card.maintenance {
+    border-left-color: #2196f3;
+}
+
+.inventory-item {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid #e9ecef;
+    margin-bottom: 15px;
+    transition: all 0.3s;
+}
+
+.inventory-item:hover {
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    border-color: #3f51b5;
+}
+
+.item-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 20px;
+    font-size: 1.8rem;
+    color: white;
+}
+
+.icon-equipment { background: #3f51b5; }
+.icon-input { background: #4caf50; }
+.icon-tool { background: #ff9800; }
+.icon-vehicle { background: #9c27b0; }
+.icon-infrastructure { background: #607d8b; }
+.icon-other { background: #795548; }
+
+.quantity-badge {
+    background: #e3f2fd;
+    color: #1976d2;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.quantity-badge.low {
+    background: #fff3e0;
+    color: #f57c00;
+}
+
+.quantity-badge.empty {
+    background: #ffebee;
+    color: #d32f2f;
+}
+
+.status-badge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.status-available { background: #e8f5e8; color: #2e7d32; }
+.status-in-use { background: #fff3e0; color: #f57c00; }
+.status-maintenance { background: #e3f2fd; color: #1976d2; }
+.status-depleted { background: #ffebee; color: #d32f2f; }
+
+.transaction-item {
+    display: flex;
+    justify-content: between;
+    align-items: center;
+    padding: 15px;
+    border-bottom: 1px solid #f8f9fa;
+    transition: all 0.3s;
+}
+
+.transaction-item:hover {
+    background: #f8f9fa;
+}
+
+.transaction-item:last-child {
+    border-bottom: none;
+}
+
+.transaction-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 15px;
+    font-size: 1rem;
+    color: white;
+}
+
+.icon-purchase { background: #4caf50; }
+.icon-usage { background: #ff9800; }
+.icon-transfer { background: #2196f3; }
+.icon-adjustment { background: #9c27b0; }
+.icon-disposal { background: #f44336; }
+
+.quick-actions {
+    background: white;
+    border-radius: 15px;
+    padding: 25px;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+}
+
+.action-btn {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 10px;
+    text-align: left;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    text-decoration: none;
+    color: #333;
+    transition: all 0.3s;
+}
+
+.action-btn:hover {
+    border-color: #3f51b5;
+    background: rgba(63, 81, 181, 0.05);
+    color: #3f51b5;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: #6c757d;
+}
+
+.empty-state i {
+    font-size: 3rem;
+    margin-bottom: 15px;
+    opacity: 0.5;
+}
+
+.type-breakdown {
+    background: white;
+    border-radius: 15px;
+    padding: 25px;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+    margin-bottom: 20px;
+}
+
+.breakdown-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.breakdown-item:last-child {
+    border-bottom: none;
+}
+
+.progress-bar-custom {
+    height: 8px;
+    background: #e9ecef;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-top: 5px;
+}
+
+.progress-fill {
+    height: 100%;
+    background: #3f51b5;
+    transition: width 0.3s ease;
+}
+</style>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid px-4 py-4">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="h3 mb-0 text-primary">Inventory Management</h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'dashboard:index' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Inventory</li>
+                </ol>
+            </nav>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{% url 'inventory:inventory_item_create' %}" class="btn btn-primary me-2">
+                <i class="material-icons small align-middle">add</i> Add Item
+            </a>
+            <div class="dropdown d-inline">
+                <button class="btn btn-outline-primary dropdown-toggle" data-bs-toggle="dropdown">
+                    <i class="material-icons small align-middle">more_vert</i> More
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="{% url 'inventory:inventory_reports' %}">
+                        <i class="material-icons small align-middle">analytics</i> Reports
+                    </a></li>
+                    <li><a class="dropdown-item" href="{% url 'inventory:inventory_list' %}">
+                        <i class="material-icons small align-middle">list</i> View All Items
+                    </a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="#">
+                        <i class="material-icons small align-middle">file_download</i> Export Inventory
+                    </a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Inventory Header -->
+    <div class="inventory-header">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h2 class="mb-2">Smart Inventory Management</h2>
+                <p class="mb-0 opacity-90">
+                    Track equipment, farm inputs, and supplies with automated alerts and comprehensive reporting.
+                </p>
+            </div>
+            <div class="col-md-4 text-end">
+                <div class="h1 mb-0">{{ total_items }}</div>
+                <small class="opacity-75">Total Items Tracked</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="stat-card">
+                <span class="stat-number">{{ total_items }}</span>
+                <span class="stat-label">Total Items</span>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <span class="stat-number {% if low_stock_items > 0 %}warning{% endif %}">{{ low_stock_items }}</span>
+                <span class="stat-label">Low Stock Alerts</span>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <span class="stat-number {% if expired_items > 0 %}danger{% endif %}">{{ expired_items }}</span>
+                <span class="stat-label">Expired Items</span>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <span class="stat-number">{{ equipment_maintenance|length }}</span>
+                <span class="stat-label">Maintenance Due</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alerts Section -->
+    {% if low_stock_alerts or expiring_items or equipment_maintenance %}
+    <div class="row mb-4">
+        {% if low_stock_alerts %}
+        <div class="col-md-4">
+            <div class="alert-card low-stock">
+                <h6 class="text-warning mb-3">
+                    <i class="material-icons align-middle me-2">warning</i>
+                    Low Stock Alerts
+                </h6>
+                {% for item in low_stock_alerts %}
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="small">{{ item.name }}</span>
+                    <span class="badge bg-warning">{{ item.quantity }} {{ item.unit }}</span>
+                </div>
+                {% endfor %}
+                <a href="{% url 'inventory:inventory_list' %}?status=available&low_stock=1" class="btn btn-sm btn-outline-warning mt-2">
+                    View All
+                </a>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if expiring_items %}
+        <div class="col-md-4">
+            <div class="alert-card expired">
+                <h6 class="text-danger mb-3">
+                    <i class="material-icons align-middle me-2">schedule</i>
+                    Expiring Soon
+                </h6>
+                {% for item in expiring_items %}
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="small">{{ item.inventory_item.name }}</span>
+                    <span class="badge bg-danger">{{ item.expiry_date|date:"M d" }}</span>
+                </div>
+                {% endfor %}
+                <a href="#" class="btn btn-sm btn-outline-danger mt-2">
+                    View All
+                </a>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if equipment_maintenance %}
+        <div class="col-md-4">
+            <div class="alert-card maintenance">
+                <h6 class="text-info mb-3">
+                    <i class="material-icons align-middle me-2">build</i>
+                    Maintenance Due
+                </h6>
+                {% for equipment in equipment_maintenance %}
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="small">{{ equipment.inventory_item.name }}</span>
+                    <span class="badge bg-info">{{ equipment.next_maintenance_date|date:"M d" }}</span>
+                </div>
+                {% endfor %}
+                <a href="#" class="btn btn-sm btn-outline-info mt-2">
+                    Schedule Maintenance
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <div class="row">
+        <!-- Main Content -->
+        <div class="col-lg-8">
+            <!-- Inventory by Type -->
+            <div class="type-breakdown">
+                <h5 class="text-primary mb-4">
+                    <i class="material-icons align-middle me-2">category</i>
+                    Inventory by Type
+                </h5>
+
+                {% for type_data in items_by_type %}
+                <div class="breakdown-item">
+                    <div class="d-flex align-items-center">
+                        <div class="item-icon icon-{{ type_data.item_type }}">
+                            {% if type_data.item_type == 'equipment' %}
+                                <i class="material-icons">precision_manufacturing</i>
+                            {% elif type_data.item_type == 'input' %}
+                                <i class="material-icons">scatter_plot</i>
+                            {% elif type_data.item_type == 'tool' %}
+                                <i class="material-icons">build</i>
+                            {% elif type_data.item_type == 'vehicle' %}
+                                <i class="material-icons">local_shipping</i>
+                            {% else %}
+                                <i class="material-icons">inventory</i>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <h6 class="mb-1">{{ type_data.get_item_type_display }}</h6>
+                            <div class="small text-muted">{{ type_data.count }} items</div>
+                        </div>
+                    </div>
+                    <div class="text-end">
+                        <div class="fw-bold">{{ type_data.count }}</div>
+                        <small class="text-muted">items</small>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Recent Transactions -->
+            <div class="type-breakdown">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="text-primary mb-0">
+                        <i class="material-icons align-middle me-2">swap_horiz</i>
+                        Recent Transactions
+                    </h5>
+                    <a href="#" class="btn btn-sm btn-outline-primary">View All</a>
+                </div>
+
+                {% if recent_transactions %}
+                    {% for transaction in recent_transactions %}
+                    <div class="transaction-item">
+                        <div class="d-flex align-items-center flex-grow-1">
+                            <div class="transaction-icon icon-{{ transaction.transaction_type }}">
+                                {% if transaction.transaction_type == 'purchase' %}
+                                    <i class="material-icons">add_shopping_cart</i>
+                                {% elif transaction.transaction_type == 'usage' %}
+                                    <i class="material-icons">remove</i>
+                                {% elif transaction.transaction_type == 'transfer' %}
+                                    <i class="material-icons">swap_horiz</i>
+                                {% elif transaction.transaction_type == 'adjustment' %}
+                                    <i class="material-icons">tune</i>
+                                {% else %}
+                                    <i class="material-icons">delete</i>
+                                {% endif %}
+                            </div>
+                            <div>
+                                <h6 class="mb-1">{{ transaction.get_transaction_type_display }}</h6>
+                                <div class="small text-muted">{{ transaction.inventory_item.name }}</div>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <div class="fw-bold">{{ transaction.quantity }} {{ transaction.inventory_item.unit }}</div>
+                            <small class="text-muted">{{ transaction.date|date:"M d" }}</small>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-state">
+                        <i class="material-icons">swap_horiz</i>
+                        <h6>No Recent Transactions</h6>
+                        <p class="mb-0">Start recording inventory movements to see them here.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Quick Actions -->
+            <div class="quick-actions mb-4">
+                <h6 class="text-primary mb-3">Quick Actions</h6>
+                
+                <a href="{% url 'inventory:inventory_item_create' %}" class="action-btn">
+                    <i class="material-icons small align-middle me-2">add</i>
+                    Add New Item
+                </a>
+                
+                <a href="{% url 'inventory:inventory_list' %}" class="action-btn">
+                    <i class="material-icons small align-middle me-2">list</i>
+                    View All Inventory
+                </a>
+                
+                <a href="#" class="action-btn" onclick="showQuickTransaction()">
+                    <i class="material-icons small align-middle me-2">swap_horiz</i>
+                    Quick Transaction
+                </a>
+                
+                <a href="{% url 'inventory:inventory_reports' %}" class="action-btn">
+                    <i class="material-icons small align-middle me-2">analytics</i>
+                    View Reports
+                </a>
+                
+                <a href="#" class="action-btn">
+                    <i class="material-icons small align-middle me-2">build</i>
+                    Schedule Maintenance
+                </a>
+            </div>
+
+            <!-- Monthly Summary -->
+            <div class="type-breakdown">
+                <h6 class="text-primary mb-3">
+                    <i class="material-icons align-middle me-2">calendar_today</i>
+                    This Month's Activity
+                </h6>
+                
+                {% for transaction in monthly_transactions %}
+                <div class="breakdown-item">
+                    <span>{{ transaction.get_transaction_type_display }}</span>
+                    <div class="text-end">
+                        <div class="fw-bold">{{ transaction.count }}</div>
+                        <small class="text-muted">
+                            {% if transaction.total_value %}
+                                ₦{{ transaction.total_value|floatformat:0 }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </small>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Search Widget -->
+            <div class="type-breakdown">
+                <h6 class="text-primary mb-3">
+                    <i class="material-icons align-middle me-2">search</i>
+                    Quick Search
+                </h6>
+                
+                <div class="input-group">
+                    <input type="text" class="form-control" id="inventorySearch" placeholder="Search inventory...">
+                    <button class="btn btn-outline-primary" onclick="searchInventory()">
+                        <i class="material-icons small">search</i>
+                    </button>
+                </div>
+                
+                <div id="searchResults" class="mt-3" style="display: none;">
+                    <!-- Search results will appear here -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Transaction Modal -->
+<div class="modal fade" id="quickTransactionModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Quick Transaction</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="quickTransactionForm">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label">Select Item</label>
+                        <select class="form-control" id="transactionItem" required>
+                            <option value="">Choose an item...</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Transaction Type</label>
+                        <select class="form-control" id="transactionType" required>
+                            <option value="usage">Usage</option>
+                            <option value="adjustment">Adjustment</option>
+                            <option value="disposal">Disposal</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Quantity</label>
+                        <input type="number" class="form-control" id="transactionQuantity" step="0.01" min="0" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Notes (Optional)</label>
+                        <input type="text" class="form-control" id="transactionNotes" placeholder="Quick note...">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="submitQuickTransaction()">Record Transaction</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function showQuickTransaction() {
+    // Load available items
+    fetch('/inventory/search/?q=')
+        .then(response => response.json())
+        .then(data => {
+            const select = document.getElementById('transactionItem');
+            select.innerHTML = '<option value="">Choose an item...</option>';
+            
+            // In a real implementation, you'd fetch all items for the dropdown
+            // For now, we'll show a placeholder
+        });
+    
+    const modal = new bootstrap.Modal(document.getElementById('quickTransactionModal'));
+    modal.show();
+}
+
+function submitQuickTransaction() {
+    const form = document.getElementById('quickTransactionForm');
+    const itemId = document.getElementById('transactionItem').value;
+    const type = document.getElementById('transactionType').value;
+    const quantity = document.getElementById('transactionQuantity').value;
+    const notes = document.getElementById('transactionNotes').value;
+    
+    if (!itemId || !type || !quantity) {
+        alert('Please fill in all required fields');
+        return;
+    }
+    
+    // Submit transaction
+    fetch(`/inventory/${itemId}/quick-transaction/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: `transaction_type=${type}&quantity=${quantity}&notes=${notes}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Failed to record transaction');
+        }
+    });
+}
+
+function searchInventory() {
+    const query = document.getElementById('inventorySearch').value;
+    if (query.length < 2) return;
+    
+    fetch(`/inventory/search/?q=${encodeURIComponent(query)}`)
+        .then(response => response.json())
+        .then(data => {
+            const resultsDiv = document.getElementById('searchResults');
+            
+            if (data.success && data.items.length > 0) {
+                let html = '<div class="list-group">';
+                data.items.forEach(item => {
+                    html += `
+                        <a href="/inventory/${item.id}/" class="list-group-item list-group-item-action">
+                            <strong>${item.name}</strong>
+                            <div class="small text-muted">${item.quantity} ${item.unit}</div>
+                        </a>
+                    `;
+                });
+                html += '</div>';
+                resultsDiv.innerHTML = html;
+                resultsDiv.style.display = 'block';
+            } else {
+                resultsDiv.innerHTML = '<p class="text-muted small">No items found</p>';
+                resultsDiv.style.display = 'block';
+            }
+        });
+}
+
+// Auto-search as user types
+document.getElementById('inventorySearch').addEventListener('input', function() {
+    const query = this.value;
+    if (query.length >= 2) {
+        setTimeout(searchInventory, 300);
+    } else {
+        document.getElementById('searchResults').style.display = 'none';
+    }
+});
+</script>
+{% endblock %}

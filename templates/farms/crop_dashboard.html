@@ -8,6 +8,143 @@
 {% block extra_css %}
 
 <style>
+/* Mobile-specific styles for crop dashboard */
+@media (max-width: 768px) {
+  .crop-card {
+    margin-bottom: 16px;
+  }
+  
+  .crop-card .card-body {
+    padding: 16px;
+  }
+  
+  .crop-card .card-title {
+    font-size: 1.1rem;
+    margin-bottom: 12px;
+  }
+  
+  .stat-card {
+    margin-bottom: 12px;
+    padding: 16px;
+  }
+  
+  .stat-card h3 {
+    font-size: 1.8rem;
+    margin-bottom: 4px;
+  }
+  
+  .stat-card .text-muted {
+    font-size: 0.85rem;
+  }
+  
+  .weather-card {
+    text-align: center;
+    padding: 20px;
+  }
+  
+  .weather-icon {
+    font-size: 3rem;
+    margin-bottom: 12px;
+  }
+  
+  .recommendation-item {
+    padding: 12px;
+    margin-bottom: 8px;
+    border-radius: 8px;
+    background: white;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  }
+  
+  .recommendation-item h6 {
+    font-size: 0.9rem;
+    margin-bottom: 4px;
+  }
+  
+  .recommendation-item small {
+    font-size: 0.8rem;
+  }
+  
+  .chart-container {
+    height: 250px;
+    margin-bottom: 20px;
+  }
+  
+  .progress-circle {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 12px;
+  }
+  
+  .btn-group-mobile {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 16px;
+  }
+  
+  .btn-group-mobile .btn {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  /* Hide desktop-only elements */
+  .d-mobile-none {
+    display: none !important;
+  }
+  
+  /* Show mobile-only elements */
+  .d-mobile-block {
+    display: block !important;
+  }
+  
+  /* Mobile tables */
+  .table-mobile {
+    font-size: 0.85rem;
+  }
+  
+  .table-mobile td {
+    padding: 8px 4px;
+    vertical-align: middle;
+  }
+  
+  .table-mobile .health-indicator {
+    width: 12px;
+    height: 12px;
+  }
+  
+  /* Mobile calendar view */
+  .calendar-mobile .calendar-day {
+    background: white;
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    border-left: 4px solid var(--primary-color);
+  }
+  
+  .calendar-mobile .calendar-date {
+    font-weight: 600;
+    color: var(--primary-color);
+    font-size: 0.9rem;
+    margin-bottom: 8px;
+  }
+  
+  .calendar-mobile .calendar-events {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  
+  .calendar-mobile .calendar-event {
+    background: rgba(46, 125, 50, 0.1);
+    color: var(--primary-dark);
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+  }
+}
+
+<style>
   .health-indicator {
     width: 15px;
     height: 15px;
@@ -679,8 +816,8 @@
                             <div class="timeline-item">
                                 <div class="d-flex">
                                     <div>
-                                        <h6 class="mb-1">{{ activity.title }}</h6>
-                                        <p class="small text-muted mb-0">{{ activity.location }}</p>
+                                        <h6 class="mb-1"><a href="{% url 'activities:activity_detail' activity.id %}">{{ activity.title }}</a></h6>
+                                        <p class="small text-muted mb-0">{{ activity.field }}</p>
                                         <p class="small text-muted mb-0">
                                             {% if activity.actual_date %}
                                                 {{ activity.actual_date|date:"F j, Y" }}
@@ -707,7 +844,7 @@
                                 <p class="mt-2 text-muted">No activities recorded yet.</p>
                                 {% if crop_cycle and crop_cycle.id %}
                                 <a href="{% url 'activities:activity_create_for_crop' crop_cycle.id %}" class="btn btn-sm btn-success mt-2">
-                                    <i class="material-icons small align-middle">add</i> Add First Activity
+                                    <i class="material-icons small align-middle">add</i> Add First rActivity
                                 </a>
                                 {% else %}
                                 <a href="{% url 'activities:activity_create' %}" class="btn btn-sm btn-success mt-2">
@@ -717,6 +854,120 @@
                             </div>
                         {% endif %}
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Calendar Events Section -->
+    <div class="row mt-4 mb-4">
+        <!-- Upcoming Calendar Events -->
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
+                    <h5 class="text-success mb-0">Upcoming Tasks</h5>
+                    <a href="{% url 'farms:crop_calendar' %}" class="btn btn-sm btn-outline-success">View Calendar</a>
+                </div>
+                <div class="card-body">
+                    {% if upcoming_calendar_events %}
+                        {% for event in upcoming_calendar_events %}
+                            <div class="d-flex align-items-center p-3 mb-2 rounded border-start border-success border-3">
+                                <div class="me-3">
+                                    <i class="material-icons text-{{ event.priority|yesno:'danger,warning,success' }}">
+                                        {% if event.event_type == 'planting' %}agriculture
+                                        {% elif event.event_type == 'fertilizing' %}spa
+                                        {% elif event.event_type == 'watering' %}water_drop
+                                        {% elif event.event_type == 'harvesting' %}grass
+                                        {% elif event.event_type == 'pest_control' %}bug_report
+                                        {% else %}event{% endif %}
+                                    </i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">{{ event.title }}</h6>
+                                    <p class="small text-muted mb-1">{{ event.farm.name }}</p>
+                                    <p class="small mb-0">
+                                        <i class="material-icons small align-middle">schedule</i>
+                                        {{ event.start_date|date:"M d, Y" }}
+                                        <span class="badge bg-{{ event.priority|yesno:'danger,warning,success' }} ms-2">
+                                            {{ event.get_priority_display }}
+                                        </span>
+                                    </p>
+                                </div>
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                        <i class="material-icons small">more_vert</i>
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" href="{% url 'farms:crop_calendar_edit' event.id %}">Edit</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="markEventComplete({{ event.id }})">Mark Complete</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="material-icons text-muted" style="font-size: 48px;">event_available</i>
+                            <p class="mt-2 text-muted">No upcoming tasks this week</p>
+                            <a href="{% url 'farms:crop_calendar_create' %}" class="btn btn-sm btn-success">
+                                <i class="material-icons small align-middle">add</i> Add Task
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Overdue Events -->
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm h-100 {% if overdue_calendar_events %}border-danger{% endif %}">
+                <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
+                    <h5 class="{% if overdue_calendar_events %}text-danger{% else %}text-success{% endif %} mb-0">
+                        {% if overdue_calendar_events %}
+                            <i class="material-icons small align-middle">warning</i>
+                        {% endif %}
+                        Overdue Tasks
+                    </h5>
+                    {% if overdue_calendar_events %}
+                        <span class="badge bg-danger">{{ overdue_calendar_events|length }}</span>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    {% if overdue_calendar_events %}
+                        {% for event in overdue_calendar_events %}
+                            <div class="d-flex align-items-center p-3 mb-2 rounded bg-light border-start border-danger border-3">
+                                <div class="me-3">
+                                    <i class="material-icons text-danger">
+                                        {% if event.event_type == 'planting' %}agriculture
+                                        {% elif event.event_type == 'fertilizing' %}spa
+                                        {% elif event.event_type == 'watering' %}water_drop
+                                        {% elif event.event_type == 'harvesting' %}grass
+                                        {% elif event.event_type == 'pest_control' %}bug_report
+                                        {% else %}event{% endif %}
+                                    </i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1 text-danger">{{ event.title }}</h6>
+                                    <p class="small text-muted mb-1">{{ event.farm.name }}</p>
+                                    <p class="small text-danger mb-0">
+                                        <i class="material-icons small align-middle">schedule</i>
+                                        Due: {{ event.start_date|date:"M d, Y" }}
+                                        <span class="badge bg-danger ms-2">
+                                            {{ event.start_date|timesince }} overdue
+                                        </span>
+                                    </p>
+                                </div>
+                                <button class="btn btn-sm btn-danger" onclick="markEventComplete({{ event.id }})">
+                                    Complete
+                                </button>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="material-icons text-success" style="font-size: 48px;">task_alt</i>
+                            <p class="mt-2 text-muted">All tasks are up to date!</p>
+                            <p class="small text-success">Great job staying on top of your farm activities.</p>
+                        </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -795,5 +1046,34 @@
             });
         });
     });
+
+    // Function to mark calendar event as complete
+    function markEventComplete(eventId) {
+        if (confirm('Mark this task as completed?')) {
+            fetch(`/farms/calendar/event/${eventId}/complete/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    notes: '',
+                    actual_cost: ''
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while updating the task.');
+            });
+        }
+    }
 </script>
 {% endblock %}

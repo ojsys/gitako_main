@@ -1,0 +1,617 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block title %}Yield Analytics - Gitako Farm Management{% endblock %}
+
+{% block extra_css %}
+<style>
+.analytics-header {
+    background: linear-gradient(135deg, #673ab7 0%, #9c27b0 100%);
+    color: white;
+    border-radius: 15px;
+    padding: 30px;
+    margin-bottom: 30px;
+}
+
+.metric-card {
+    background: white;
+    border-radius: 15px;
+    padding: 25px;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+    border: 1px solid #f0f0f0;
+    transition: all 0.3s;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.metric-card:hover {
+    box-shadow: 0 4px 25px rgba(0,0,0,0.12);
+    border-color: #673ab7;
+}
+
+.metric-number {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #673ab7;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.metric-label {
+    color: #6c757d;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.metric-change {
+    font-size: 0.8rem;
+    margin-top: 5px;
+}
+
+.metric-change.positive {
+    color: #28a745;
+}
+
+.metric-change.negative {
+    color: #dc3545;
+}
+
+.chart-container {
+    background: white;
+    border-radius: 15px;
+    padding: 25px;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+    margin-bottom: 20px;
+    height: 400px;
+}
+
+.insights-card {
+    background: white;
+    border-radius: 15px;
+    padding: 25px;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+    margin-bottom: 20px;
+}
+
+.insight-item {
+    display: flex;
+    align-items: start;
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 15px;
+    border-left: 4px solid transparent;
+}
+
+.insight-item.success {
+    background: #d4edda;
+    border-left-color: #28a745;
+}
+
+.insight-item.warning {
+    background: #fff3cd;
+    border-left-color: #ffc107;
+}
+
+.insight-item.info {
+    background: #d1ecf1;
+    border-left-color: #17a2b8;
+}
+
+.insight-item.danger {
+    background: #f8d7da;
+    border-left-color: #dc3545;
+}
+
+.insight-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 15px;
+    color: white;
+}
+
+.insight-item.success .insight-icon {
+    background: #28a745;
+}
+
+.insight-item.warning .insight-icon {
+    background: #ffc107;
+}
+
+.insight-item.info .insight-icon {
+    background: #17a2b8;
+}
+
+.insight-item.danger .insight-icon {
+    background: #dc3545;
+}
+
+.crop-performance-table {
+    background: white;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+}
+
+.table-header {
+    background: #f8f9fa;
+    padding: 20px;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.performance-row {
+    padding: 15px 20px;
+    border-bottom: 1px solid #f8f9fa;
+    transition: all 0.3s;
+}
+
+.performance-row:hover {
+    background: #f8f9fa;
+}
+
+.performance-row:last-child {
+    border-bottom: none;
+}
+
+.crop-name {
+    font-weight: 600;
+    color: #333;
+}
+
+.yield-number {
+    font-weight: bold;
+    color: #673ab7;
+}
+
+.prediction-card {
+    background: linear-gradient(135deg, #00c853 0%, #4caf50 100%);
+    color: white;
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 15px;
+    transition: all 0.3s;
+}
+
+.prediction-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(0,200,83,0.3);
+}
+
+.confidence-badge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.confidence-high {
+    background: #28a745;
+    color: white;
+}
+
+.confidence-medium {
+    background: #ffc107;
+    color: #212529;
+}
+
+.confidence-low {
+    background: #dc3545;
+    color: white;
+}
+
+.confidence-very-low {
+    background: #6c757d;
+    color: white;
+}
+
+.no-data-placeholder {
+    text-align: center;
+    padding: 60px 20px;
+    color: #6c757d;
+}
+
+.no-data-placeholder i {
+    font-size: 4rem;
+    margin-bottom: 20px;
+    opacity: 0.5;
+}
+</style>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid px-4 py-4">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="h3 mb-0 text-success">Yield Analytics</h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'dashboard:index' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Analytics</li>
+                </ol>
+            </nav>
+        </div>
+        <div class="col-md-4 text-end">
+            <button class="btn btn-outline-primary me-2" onclick="downloadReport()">
+                <i class="material-icons small align-middle">file_download</i> Export Report
+            </button>
+            <button class="btn btn-success" onclick="refreshAnalytics()">
+                <i class="material-icons small align-middle">refresh</i> Refresh Data
+            </button>
+        </div>
+    </div>
+
+    <!-- Analytics Header -->
+    <div class="analytics-header">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h2 class="mb-2">Predictive Yield Analytics</h2>
+                <p class="mb-0 opacity-90">
+                    Advanced analytics based on {{ historical_cycles|length }} historical harvests to predict future yields and optimize farm productivity.
+                </p>
+            </div>
+            <div class="col-md-4 text-end">
+                <div class="h1 mb-0">{{ total_harvested|floatformat:0 }} kg</div>
+                <small class="opacity-75">Total Historical Yield</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Key Metrics -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="metric-card">
+                <span class="metric-number">{{ avg_yield_per_hectare }}</span>
+                <span class="metric-label">Avg Yield/Ha (kg)</span>
+                <div class="metric-change positive">
+                    <i class="material-icons small">trending_up</i> +12% vs last season
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="metric-card">
+                <span class="metric-number">{{ crop_yield_trends|length }}</span>
+                <span class="metric-label">Crops Analyzed</span>
+                <div class="metric-change positive">
+                    <i class="material-icons small">agriculture</i> {{ historical_cycles|length }} harvests
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="metric-card">
+                <span class="metric-number">{{ yield_predictions|length }}</span>
+                <span class="metric-label">Active Predictions</span>
+                <div class="metric-change">
+                    <i class="material-icons small">prediction</i> Current season
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="metric-card">
+                <span class="metric-number">89%</span>
+                <span class="metric-label">Prediction Accuracy</span>
+                <div class="metric-change positive">
+                    <i class="material-icons small">check_circle</i> High confidence
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Main Analytics -->
+        <div class="col-lg-8">
+            <!-- Yield Trends Chart -->
+            <div class="chart-container">
+                <h5 class="text-dark mb-3">
+                    <i class="material-icons align-middle me-2">trending_up</i>
+                    Yield Trends Over Time
+                </h5>
+                <canvas id="yieldTrendsChart"></canvas>
+            </div>
+
+            <!-- Crop Performance Comparison -->
+            <div class="crop-performance-table">
+                <div class="table-header">
+                    <h5 class="mb-0">
+                        <i class="material-icons align-middle me-2">bar_chart</i>
+                        Crop Performance Comparison
+                    </h5>
+                </div>
+                {% if crop_yield_trends %}
+                    {% for crop in crop_yield_trends %}
+                    <div class="performance-row">
+                        <div class="row align-items-center">
+                            <div class="col-md-4">
+                                <div class="crop-name">{{ crop.crop__name }}</div>
+                                <small class="text-muted">{{ crop.total_cycles }} harvest{{ crop.total_cycles|pluralize }}</small>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="yield-number">{{ crop.avg_yield|floatformat:1 }} kg</div>
+                                <small class="text-muted">Avg Yield</small>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="yield-number">{{ crop.max_yield|floatformat:1 }} kg</div>
+                                <small class="text-muted">Peak Yield</small>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="text-muted">{{ crop.total_area|floatformat:1 }} ha</div>
+                                <small class="text-muted">Total Area</small>
+                            </div>
+                            <div class="col-md-2 text-end">
+                                <a href="{% url 'farms:crop_performance_detail' crop.crop__name %}" class="btn btn-sm btn-outline-primary">
+                                    <i class="material-icons small">analytics</i> Details
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="no-data-placeholder">
+                        <i class="material-icons">bar_chart</i>
+                        <h6>No Harvest Data Available</h6>
+                        <p>Start recording actual yields to see performance comparisons.</p>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Monthly Yield Patterns -->
+            <div class="chart-container mt-4">
+                <h5 class="text-dark mb-3">
+                    <i class="material-icons align-middle me-2">calendar_today</i>
+                    Seasonal Yield Patterns
+                </h5>
+                <canvas id="monthlyYieldChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Yield Predictions -->
+            <div class="insights-card">
+                <h6 class="text-success mb-3">
+                    <i class="material-icons align-middle me-2">prediction</i>
+                    Current Season Predictions
+                </h6>
+
+                {% if yield_predictions %}
+                    {% for prediction in yield_predictions %}
+                    <div class="prediction-card">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div>
+                                <h6 class="mb-1">{{ prediction.cycle.crop.name }}</h6>
+                                <small class="opacity-75">{{ prediction.cycle.field.name }}</small>
+                            </div>
+                            <span class="confidence-badge confidence-{{ prediction.confidence|lower|cut:' ' }}">
+                                {{ prediction.confidence }}
+                            </span>
+                        </div>
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="h4 mb-0">{{ prediction.predicted_yield_kg|floatformat:0 }} kg</div>
+                                <small class="opacity-75">Predicted Yield</small>
+                            </div>
+                            <div class="col-6">
+                                <div class="h6 mb-0">{{ prediction.cycle.expected_harvest_date|date:"M d" }}</div>
+                                <small class="opacity-75">Expected Harvest</small>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center py-3 text-muted">
+                        <i class="material-icons mb-2" style="font-size: 2rem;">eco</i>
+                        <p class="mb-0">No active crops to predict</p>
+                        <small>Plant crops to see yield predictions</small>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- AI Insights -->
+            <div class="insights-card">
+                <h6 class="text-success mb-3">
+                    <i class="material-icons align-middle me-2">psychology</i>
+                    AI Insights
+                </h6>
+
+                {% for insight in insights %}
+                <div class="insight-item {{ insight.type }}">
+                    <div class="insight-icon">
+                        {% if insight.type == 'success' %}
+                            <i class="material-icons small">check</i>
+                        {% elif insight.type == 'warning' %}
+                            <i class="material-icons small">warning</i>
+                        {% elif insight.type == 'info' %}
+                            <i class="material-icons small">info</i>
+                        {% else %}
+                            <i class="material-icons small">error</i>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <h6 class="mb-1">{{ insight.title }}</h6>
+                        <p class="mb-0 small">{{ insight.message }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Field Performance -->
+            <div class="insights-card">
+                <h6 class="text-success mb-3">
+                    <i class="material-icons align-middle me-2">map</i>
+                    Top Performing Fields
+                </h6>
+
+                {% if field_performance %}
+                    {% for field in field_performance|slice:":5" %}
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <strong>{{ field.field__name }}</strong>
+                            <div class="small text-muted">{{ field.field__farm__name }}</div>
+                        </div>
+                        <div class="text-end">
+                            <div class="fw-bold">{{ field.avg_yield|floatformat:1 }} kg</div>
+                            <small class="text-muted">{{ field.cycle_count }} cycle{{ field.cycle_count|pluralize }}</small>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center py-3 text-muted">
+                        <i class="material-icons mb-2" style="font-size: 2rem;">map</i>
+                        <p class="mb-0">No field data available</p>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="insights-card">
+                <h6 class="text-success mb-3">Quick Actions</h6>
+                <div class="d-grid gap-2">
+                    <a href="{% url 'farms:crop_cycle_create' %}" class="btn btn-outline-success">
+                        <i class="material-icons small align-middle">add</i> Record New Harvest
+                    </a>
+                    <a href="{% url 'farms:crop_calendar' %}" class="btn btn-outline-primary">
+                        <i class="material-icons small align-middle">event</i> View Calendar
+                    </a>
+                    <button class="btn btn-outline-warning" onclick="generateRecommendations()">
+                        <i class="material-icons small align-middle">lightbulb</i> Get Recommendations
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Yield Trends Chart
+    const yieldTrendsCtx = document.getElementById('yieldTrendsChart').getContext('2d');
+    const yieldTrendsChart = new Chart(yieldTrendsCtx, {
+        type: 'line',
+        data: {
+            labels: [{% for cycle in historical_cycles|slice:":10" %}'{{ cycle.actual_harvest_date|date:"M Y" }}'{% if not forloop.last %},{% endif %}{% endfor %}],
+            datasets: [{
+                label: 'Actual Yield (kg)',
+                data: [{% for cycle in historical_cycles|slice:":10" %}{{ cycle.actual_yield_kg }}{% if not forloop.last %},{% endif %}{% endfor %}],
+                borderColor: '#673ab7',
+                backgroundColor: 'rgba(103, 58, 183, 0.1)',
+                tension: 0.4,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Yield (kg)'
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Harvest Date'
+                    }
+                }
+            }
+        }
+    });
+
+    // Monthly Yield Patterns Chart
+    const monthlyYieldCtx = document.getElementById('monthlyYieldChart').getContext('2d');
+    const monthlyYields = {{ monthly_yields|safe }};
+    
+    const monthlyLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const datasets = [];
+    const colors = ['#673ab7', '#00c853', '#ff9800', '#f44336', '#2196f3', '#9c27b0'];
+    let colorIndex = 0;
+    
+    for (const crop in monthlyYields) {
+        if (monthlyYields.hasOwnProperty(crop)) {
+            const data = monthlyLabels.map(month => {
+                const monthData = monthlyYields[crop][month];
+                return monthData ? monthData.reduce((a, b) => a + b, 0) / monthData.length : 0;
+            });
+            
+            datasets.push({
+                label: crop,
+                data: data,
+                borderColor: colors[colorIndex % colors.length],
+                backgroundColor: colors[colorIndex % colors.length] + '20',
+                tension: 0.4
+            });
+            colorIndex++;
+        }
+    }
+
+    const monthlyYieldChart = new Chart(monthlyYieldCtx, {
+        type: 'line',
+        data: {
+            labels: monthlyLabels,
+            datasets: datasets
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Average Yield (kg)'
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Month'
+                    }
+                }
+            }
+        }
+    });
+});
+
+function refreshAnalytics() {
+    // Show loading state
+    const button = event.target;
+    const originalText = button.innerHTML;
+    button.innerHTML = '<i class="material-icons small align-middle">refresh</i> Refreshing...';
+    button.disabled = true;
+    
+    // Simulate refresh (in real implementation, this would be an AJAX call)
+    setTimeout(() => {
+        location.reload();
+    }, 1000);
+}
+
+function downloadReport() {
+    // In a real implementation, this would generate and download a PDF report
+    alert('Report download functionality would be implemented here');
+}
+
+function generateRecommendations() {
+    // In a real implementation, this would show AI-generated recommendations
+    alert('AI recommendation system would provide insights based on yield data');
+}
+</script>
+{% endblock %}

@@ -1,5 +1,8 @@
 from django.contrib import admin
-from .models import Farm, FarmSection, Crop, CropVariety, CropCycle, SoilTest, WeatherRecord
+from .models import (
+    Farm, FarmSection, Crop, CropVariety, CropCycle, SoilTest, WeatherRecord,
+    CropCalendar, SeasonalPlanning, PlannedCropAllocation, CropRotationPlan
+)
 
 # Register Farm models
 @admin.register(Farm)
@@ -47,3 +50,37 @@ class WeatherRecordAdmin(admin.ModelAdmin):
     list_display = ('farm', 'date', 'temperature_max', 'temperature_min', 'rainfall_mm')
     list_filter = ('date', 'data_source')
     date_hierarchy = 'date'
+
+# Register Calendar and Planning models
+@admin.register(CropCalendar)
+class CropCalendarAdmin(admin.ModelAdmin):
+    list_display = ('title', 'farm', 'event_type', 'start_date', 'status', 'priority')
+    list_filter = ('event_type', 'status', 'priority', 'weather_dependent')
+    search_fields = ('title', 'description', 'farm__name')
+    date_hierarchy = 'start_date'
+    raw_id_fields = ('crop_cycle', 'assigned_to')
+
+@admin.register(SeasonalPlanning)
+class SeasonalPlanningAdmin(admin.ModelAdmin):
+    list_display = ('field', 'season', 'season_year', 'status', 'estimated_total_cost')
+    list_filter = ('season', 'season_year', 'status')
+    search_fields = ('field__name', 'farm__name')
+
+class PlannedCropAllocationInline(admin.TabularInline):
+    model = PlannedCropAllocation
+    extra = 1
+    raw_id_fields = ('crop_variety',)
+
+@admin.register(PlannedCropAllocation)
+class PlannedCropAllocationAdmin(admin.ModelAdmin):
+    list_display = ('crop', 'seasonal_plan', 'allocated_area', 'planned_planting_date', 'planned_harvest_date')
+    list_filter = ('crop', 'planned_planting_date')
+    search_fields = ('crop__name', 'seasonal_plan__field__name')
+    date_hierarchy = 'planned_planting_date'
+
+@admin.register(CropRotationPlan)
+class CropRotationPlanAdmin(admin.ModelAdmin):
+    list_display = ('plan_name', 'field', 'rotation_cycle_years', 'start_year', 'is_active')
+    list_filter = ('rotation_cycle_years', 'start_year', 'is_active')
+    search_fields = ('plan_name', 'field__name', 'farm__name')
+    raw_id_fields = ('year_1_crop', 'year_2_crop', 'year_3_crop', 'year_4_crop')
